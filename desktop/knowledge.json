@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "updated_on": "2026-11-10",
+  "watchlist_count": 24,
+  "rules": [
+    {
+      "id": "intent-context",
+      "title": "保留意图，给足相关背景",
+      "instruction": "保留我的原始需求与约束；只补充与当前任务有关的背景，不编造事实或目标。",
+      "applies_when": "所有任务；背景按实际需要补充",
+      "validation": "原文与约束保留由本地行为测试验证；模型收益待比较",
+      "status": "local-verified",
+      "source_ids": [
+        "mollick-interactive",
+        "addy-workflow",
+        "openai-prompting"
+      ]
+    },
+    {
+      "id": "interactive-progress",
+      "title": "先推进，再有针对性地澄清",
+      "instruction": "只追问会改变结果的关键缺口；先完成信息充分的部分，再根据具体产物迭代。",
+      "applies_when": "需求逐步清晰的协作任务；不要求每次先问问题，也不给普通文字附加工作流",
+      "validation": "本地模板行为已验证；这是一项产品选择，不是普遍最优结论",
+      "status": "local-verified",
+      "source_ids": [
+        "mollick-interactive"
+      ]
+    },
+    {
+      "id": "evidence-first",
+      "title": "把做好变成可检查的结果",
+      "instruction": "交付时说明完成了什么、怎样验证、还有什么未验证；不要把计划或预览当作运行成功。",
+      "applies_when": "需要执行、调研、设计或交付成果的任务；普通润色不追加工程验收",
+      "validation": "本地输出检查与桌面用户路径验证",
+      "status": "local-verified",
+      "source_ids": [
+        "pstack-verification",
+        "simon-manual"
+      ]
+    },
+    {
+      "id": "small-increments",
+      "title": "用可验证的小步完成复杂工作",
+      "instruction": "将复杂工作拆成有可观察结果的小步，每步执行后检查，并保留下一步所需的进度。",
+      "applies_when": "持续开发、研究或多阶段任务",
+      "validation": "局部工作流程已使用；未做独立模型盲评",
+      "status": "local-verified",
+      "source_ids": [
+        "addy-workflow",
+        "anthropic-harness"
+      ]
+    },
+    {
+      "id": "outcome-critique",
+      "title": "验收关注结果，也说明理由",
+      "instruction": "针对明确验收条件判断是否通过，补充具体原因与可修正的问题。",
+      "applies_when": "人工或模型辅助质量评估",
+      "validation": "作为有来源的提示保留；未验证自动评委准确率",
+      "status": "candidate",
+      "source_ids": [
+        "hamel-judge"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "pstack-overview",
+      "author": "Lauren Tan / poteto",
+      "title": "pstack README",
+      "url": "https://github.com/cursor/plugins/blob/main/pstack/README.md",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "pstack-verification",
+      "author": "Lauren Tan / pstack",
+      "title": "Verification and feature maps",
+      "url": "https://github.com/cursor/plugins/blob/main/pstack/skills/create-verification-skill/SKILL.md",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "pstack-correct",
+      "author": "Lauren Tan / pstack",
+      "title": "Correct recurring mistakes",
+      "url": "https://github.com/cursor/plugins/blob/main/pstack/skills/correct/SKILL.md",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "pstack-eval",
+      "author": "Lauren Tan / pstack",
+      "title": "Paired and blinded evaluation",
+      "url": "https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/playbooks/eval.md",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "simon-manual",
+      "author": "Simon Willison",
+      "title": "Agentic manual testing",
+      "url": "https://simonwillison.net/guides/agentic-engineering-patterns/agentic-manual-testing/",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "simon-reuse",
+      "author": "Simon Willison",
+      "title": "Hoard things you know how to do",
+      "url": "https://simonwillison.net/guides/agentic-engineering-patterns/hoard-things-you-know-how-to-do/",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "anthropic-harness",
+      "author": "Anthropic Engineering",
+      "title": "Effective harnesses for long-running agents",
+      "url": "https://www.anthropic.com/research/effective-harnesses-for-long-running-agents",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "openai-evals",
+      "author": "OpenAI Developers",
+      "title": "Testing Agent Skills Systematically with Evals",
+      "url": "https://developers.openai.com/blog/eval-skills/",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "openai-skills",
+      "author": "OpenAI documentation",
+      "title": "Build skills",
+      "url": "https://learn.chatgpt.com/docs/build-skills",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "mollick-interactive",
+      "author": "Ethan Mollick",
+      "title": "A guide to prompting AI",
+      "url": "https://www.oneusefulthing.org/p/a-guide-to-prompting-ai-for-what",
+      "checked_on": "2026-11-10"
+    },
+    {
+      "id": "addy-workflow",
+      "author": "Addy Osmani",
+      "title": "My LLM coding workflow going into 2026",
+      "url": "https://addyosmani.com/blog/ai-coding-workflow/",
+      "checked_on": "2026-11-10"
+    },
+    {
+      "id": "hamel-judge",
+      "author": "Hamel Husain",
+      "title": "Using LLM-as-a-Judge For Evaluation",
+      "url": "https://hamel.dev/blog/posts/llm-judge/",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "addy-bounded-loops",
+      "author": "Addy Osmani",
+      "title": "Practical Loop Engineering",
+      "url": "https://addyosmani.com/blog/practical-loop-engineering/",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "mollick-agency",
+      "author": "Ethan Mollick",
+      "title": "Agency and Agents",
+      "url": "https://www.oneusefulthing.org/p/agency-and-agents",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "impeccable-context",
+      "author": "Paul Bakaus / Impeccable",
+      "title": "Designing with Impeccable",
+      "url": "https://impeccable.style/designing/",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "compound-strategy",
+      "author": "Kieran Klaassen / Every",
+      "title": "Compound Engineering Strategy",
+      "url": "https://github.com/EveryInc/compound-engineering-plugin/blob/main/STRATEGY.md",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "huntley-ralph",
+      "author": "Geoffrey Huntley",
+      "title": "Ralph Wiggum as a software engineer",
+      "url": "https://ghuntley.com/ralph/",
+      "checked_on": "2026-11-09"
+    },
+    {
+      "id": "openai-prompting",
+      "author": "OpenAI official documentation",
+      "title": "Prompt engineering",
+      "url": "https://developers.openai.com/api/docs/guides/prompt-engineering",
+      "checked_on": "2026-11-10"
+    },
+    {
+      "id": "openai-reasoning",
+      "author": "OpenAI official documentation",
+      "title": "Reasoning best practices",
+      "url": "https://developers.openai.com/api/docs/guides/reasoning-best-practices",
+      "checked_on": "2026-11-10"
+    }
+  ]
+}

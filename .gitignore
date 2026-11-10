@@ -1,0 +1,14 @@
+.DS_Store
+.runtime/
+.cache/
+.learning-loop/
+.agents/
+.claude/
+AGENTS.md
+node_modules/
+__pycache__/
+*.pyc
+*.log
+auth.json
+*.previous.json
+dist/

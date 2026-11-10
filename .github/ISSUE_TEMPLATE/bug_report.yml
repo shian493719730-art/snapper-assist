@@ -1,0 +1,39 @@
+name: Bug report / 测试反馈
+description: Report a reproducible beta problem using synthetic text.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Use synthetic text. Never include passwords, auth.json, API keys or private chats. 未测试请明确写未测试。"
+  - type: input
+    id: environment
+    attributes:
+      label: Mac chip, macOS and Snapper version
+      placeholder: "Apple M…, macOS …, Snapper Assist 0.7.1"
+    validations:
+      required: true
+  - type: input
+    id: source_app
+    attributes:
+      label: Source app and version / 测试软件及版本
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Shortest reproduction steps / 最短复现步骤
+      description: Say whether you used local draft or AI, helper Undo or keyboard Undo, and which round failed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected_actual
+    attributes:
+      label: Expected and actual / 预期与实际
+      description: Include selection, surrounding text, blank areas, repeated toolbar behavior and any exact error message.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Optional synthetic-text screenshot or recording
+      description: Remove account information and private content first. Do not paste complete personal logs.
