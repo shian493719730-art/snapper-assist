@@ -10,9 +10,19 @@ Use macOS 26+ with a macOS 26 SDK and Swift:
 python3 desktop/build-native.py --output "$HOME/Library/Caches/SnapperAssist/build/Snapper Assist.app"
 "$HOME/Library/Caches/SnapperAssist/build/Snapper Assist.app/Contents/MacOS/SnapperAssist" --self-test
 python3 scripts/check_source.py
+python3 scripts/test_preferences.py
 ```
 
 The native checks include UTF16 selections, no-op AX writes, stale focus, guarded fallback, native Undo result verification, whitespace observations, prompt-boundary preservation, method applicability and memory-cache scope. They do not prove real editor compatibility.
+
+For actual native construction of domain-aware Chinese prompts, without launching app UI or a model:
+
+```sh
+swiftc -O desktop/native/SelectionCore.swift desktop/native/PromptPreparation.swift desktop/native/PreferenceProbe.swift -o /tmp/snapper-preference-probe
+python3 scripts/test_preferences.py --native-probe /tmp/snapper-preference-probe
+```
+
+Without that optional probe, the native routing test is explicitly skipped. The Python checks cover preference provenance, candidate confirmation, isolation, invalid data, atomic writes and preservation of local customizations. [Domain preferences](docs/preferences.md) documents current language/UI limits.
 
 With your own compatible CLI login, the optional metadata-only startup check is:
 

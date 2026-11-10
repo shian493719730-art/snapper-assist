@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "revision": "2026-11-10.1",
+  "domains": [
+    {
+      "id": "academic-dialogue",
+      "title": "学术讨论",
+      "keywords": ["学术讨论", "学术", "哲学", "概念辨析", "科学哲学", "认识论", "道德哲学", "论证结构", "苏格拉底", "academic discussion", "philosophy", "epistemology", "socratic", "conceptual analysis"],
+      "intent": "澄清学术问题、概念和论证，不预设立场已经正确",
+      "methods": ["socratic-dialogue", "argument-map"]
+    },
+    {
+      "id": "argument-review",
+      "title": "观点推敲",
+      "keywords": ["观点优化", "推敲观点", "我的观点", "这个观点", "论点", "论证", "反驳", "反例", "隐含前提", "批判性思考", "critique my argument", "argument", "counterexample", "premise", "thesis"],
+      "intent": "准确重建我的观点，检查依据、推理与适用边界，再协助修正表达",
+      "methods": ["socratic-dialogue", "argument-map"]
+    }
+  ],
+  "methods": [
+    {
+      "id": "socratic-dialogue",
+      "title": "苏格拉底式提问",
+      "short_title": "苏式提问",
+      "deliverables": [
+        "先准确复述我已给出的核心问题或观点，区分概念、事实主张与价值判断，不替我预设结论。",
+        "如果我本次没有要求直接给答案、禁止提问或禁用苏格拉底法，请采用苏格拉底式对话：每次只问一个最关键的问题，围绕定义、前提、证据、反例或适用边界推进，等我回答后再跟进，不一次堆出问题清单。",
+        "根据讨论进展帮助我形成更清楚、有限定条件的观点；必要时给简短总结。不要只附和，也不要为了反对而反对；不要把苏格拉底法强加到写作交稿、复习排程或代码修复。"
+      ],
+      "checks": [
+        "本次明确要求优先于历史偏好：如果要求直接给结论、不要提问或不用苏格拉底法，改为直接整理观点、依据与边界，不加入提问流程。否则采用一次一个关键问题的苏格拉底式对话。",
+        "保留原文观点与材料；区分事实、推断和待确认前提，用恰当的反例检验，不虚构出处，不用引导性问题诱导我同意预设答案。"
+      ],
+      "source_ids": ["plato-meno", "uantwerp-socratic"],
+      "source_note": "现代产品适配：概念澄清参考《美诺篇》；一次清晰提问和留出回答空间参考安特卫普大学教学建议。非逐字复刻，也不声称适合所有任务。"
+    },
+    {
+      "id": "argument-map",
+      "title": "论证梳理",
+      "short_title": "论证梳理",
+      "deliverables": [
+        "按我已给出的材料梳理主张、理由、证据和隐含前提，不改变我的立场。",
+        "检查推理跳步、最强反例与适用边界，区分事实、推断和价值判断。",
+        "按本次要求给出分析、改写或进一步讨论；没有确认提问偏好时，不强制采用苏格拉底式对话。"
+      ],
+      "checks": ["保留原文核心观点与事实，不补造证据。", "区分论证有效性、前提可信度与表达质量，不把不同意当作论证失败。"],
+      "source_ids": [],
+      "source_note": "产品默认整理规则，不代表用户的已确认偏好。"
+    }
+  ],
+  "sources": [
+    {"id":"plato-meno","author":"Plato; translated by Benjamin Jowett","url":"https://classics.mit.edu/Plato/meno.html","checked_on":"2026-11-10"},
+    {"id":"uantwerp-socratic","author":"University of Antwerp, Centre of Expertise for Higher Education","url":"https://www.uantwerpen.be/en/centres/centre-expertise-higher-education/didactic-information/teaching-tips/activating-students/socratic-method/","checked_on":"2026-11-10"}
+  ]
+}
