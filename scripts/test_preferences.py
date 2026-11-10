@@ -133,6 +133,17 @@ class Preferences(unittest.TestCase):
         coding=result[4]
         self.assertIn('GitHub',' '.join(coding['problem_preferences']))
         self.assertIn('evidence-first',coding['method_ids'])
+        # The default academic recommendation must not impersonate a preference
+        # for Socratic dialogue. Exercise that second method in the native path.
+        unconfirmed=copy.deepcopy(self.state);unconfirmed['preferences']={}
+        fallback=p.compile_catalog(self.base,unconfirmed,self.lib)
+        with tempfile.TemporaryDirectory() as tmp:
+            c=Path(tmp)/'catalog.json';q=Path(tmp)/'cases.json'
+            c.write_text(json.dumps(fallback,ensure_ascii=False));q.write_text(json.dumps(cases[:2],ensure_ascii=False))
+            neutral=json.loads(subprocess.check_output([PROBE,str(c),str(q),str(p.ROOT/'desktop/knowledge.json')],text=True))
+        for row in neutral:
+            self.assertIn('主张、理由、证据',row['text'])
+            self.assertIn('没有确认提问偏好',row['text'])
 
     def test_disabling_recommendations_restores_original_recipe_families(self):
         self.state['recommendations_enabled']=True

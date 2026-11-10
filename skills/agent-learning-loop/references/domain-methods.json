@@ -444,7 +444,7 @@
       "not_for": [
         "原文明确要求不使用此方法"
       ],
-      "validation": "Chinese construction checked; paid model benefit unmeasured"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "argument-map",
@@ -468,7 +468,7 @@
       "not_for": [
         "原文明确要求不使用此方法"
       ],
-      "validation": "Chinese construction checked; paid model benefit unmeasured"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "retrieval-plan",
@@ -492,7 +492,7 @@
       "not_for": [
         "不适用于只想得到简短定义而不想练习的任务"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "evidence-synthesis",
@@ -517,7 +517,7 @@
       "not_for": [
         "普通问题不强制升级为正式系统综述"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "reproduce-verify",
@@ -541,7 +541,7 @@
       "not_for": [
         "只问概念时不强制开发、测试或创建多个 Agent"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "task-usability",
@@ -565,7 +565,7 @@
       "not_for": [
         "不把每个界面任务都套成完整设计思维流程"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "reader-revision",
@@ -590,7 +590,7 @@
       "not_for": [
         "短句润色不强制访谈、读者模型或多轮流程"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "diverge-select",
@@ -614,7 +614,7 @@
       "not_for": [
         "已经明确执行方案时不要无故重新发散"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "eda-check",
@@ -638,7 +638,7 @@
       "not_for": [
         "简单格式转换不强制复杂分析"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "premortem-options",
@@ -662,7 +662,7 @@
       "not_for": [
         "没有既定计划时不把失败预演当成事实分析"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "opportunity-evidence",
@@ -686,7 +686,7 @@
       "not_for": [
         "单个小功能实现不强制重新做完整需求发现"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "workflow-routing",
@@ -710,7 +710,7 @@
       "not_for": [
         "简单任务不强制复杂 Agent 架构"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "actionable-notes",
@@ -734,7 +734,7 @@
       "not_for": [
         "只需摘要时不强制重组知识库"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     },
     {
       "id": "audience-action",
@@ -759,7 +759,7 @@
       "not_for": [
         "日常短回复不强制企业汇报模板"
       ],
-      "validation": "Pending current native construction checks; no paid model comparison"
+      "validation": "Chinese native construction fixtures passed; AI output quality and general benefit remain unmeasured."
     }
   ],
   "sources": [
