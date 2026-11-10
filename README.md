@@ -12,6 +12,10 @@
   <p>macOS 26+ · Apple silicon · Native Swift/AppKit · MIT</p>
 </div>
 
+[![Real workflow: select text, refine with AI, replace in place, then undo](assets/demo.gif)](assets/demo.mp4)
+
+**20-second real demo.** Recorded in TextEdit with Snapper Assist 0.7.1. Generation waits and idle time are shortened; app content and actions are real. [Watch the clearer MP4](assets/demo.mp4) · [Recording notes](docs/demo.md).
+
 You know what you want to do. You haven't worked out how to explain the goal, the deliverable, or the constraints that matter.
 
 **Snapper Assist puts request editing beside your selected text.** Select a rough idea, click **AI 完善**, and review a fuller request. Apply it in the original input when you're ready, or undo the change. Short notes can become concrete tasks; longer drafts can be reorganized around what matters.
