@@ -12,3 +12,4 @@ jobs:
           python-version: '3.11'
       - run: python3 scripts/check_source.py
       - run: python3 scripts/test_preferences.py
+      - run: python3 scripts/test_source_index.py

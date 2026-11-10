@@ -17,3 +17,9 @@ for path in root.rglob('*.md'):
 for required in ['SelectionAssistant.swift', 'SelectionCore.swift', 'PromptPreparation.swift', 'RefinementLaunch.swift', 'SelectionTests.swift', 'render-icons.swift']:
     assert (root / 'desktop/native' / required).is_file()
 print('Source layout, JSON and relative documentation links passed; no model calls.')
+
+import method_catalog
+import source_index
+assert not method_catalog.validate(json.loads((method_catalog.REF/'domain-methods.json').read_text()))
+assert not source_index.validate(json.loads((source_index.REF/'discovery-index.json').read_text()))
+print('Method and discovery provenance contracts passed; indexed does not mean reviewed or run.')

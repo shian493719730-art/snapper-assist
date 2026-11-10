@@ -81,6 +81,8 @@ Attribution does not imply endorsement by the cited practitioners. Model-quality
 
 **Optional domain methods:** explore a [source-backed catalog](docs/method-catalog.md) across 14 seed directions. Suggestions and confirmed personal choices stay separate. Data-only setup, feedback and current Chinese/UI limits are in the [preference guide](docs/preferences.md); this is not automatic history learning.
 
+**A growing research library:** [browse 31 sources and 1,182 indexed entries](docs/source-discovery.md) spanning scientific work, design, coding, data and automation. Reading scope and maintenance notes stay visible; indexed entries are not installed or automatically added to your prompt.
+
 ## Privacy and account use
 
 - Selecting text alone does not send it to a model.

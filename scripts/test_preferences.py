@@ -97,6 +97,16 @@ class Preferences(unittest.TestCase):
         self.assertEqual(data[p.MARKER]['origin'],'curated-recommendation')
         self.assertIn('建议',data['title'])
 
+    def test_optional_methods_are_available_without_changing_defaults(self):
+        domain=next(x for x in self.lib['domains'] if x['id']=='automation-agents')
+        self.assertEqual(domain['default_method'],'workflow-routing')
+        self.assertIn('context-handoff',domain['methods'])
+        p.remember(self.state,self.lib,'automation-agents','context-handoff','explicit-user')
+        result=p.compile_catalog(self.base,self.state,self.lib)
+        recipe=next(r for r in result['recipes'] if r['id']=='automation-agents')
+        self.assertTrue(any('按需' in text or '只加载' in text for text in recipe['deliverables']))
+        self.assertEqual(set(self.state['preferences']),{'automation-agents'})
+
     def test_unread_source_is_not_compiled_as_recommendation(self):
         self.state['recommendations_enabled']=True
         next(s for s in self.lib['sources'] if s['id']=='nist-eda')['status']='pending'
@@ -144,6 +154,22 @@ class Preferences(unittest.TestCase):
         for row in neutral:
             self.assertIn('主张、理由、证据',row['text'])
             self.assertIn('没有确认提问偏好',row['text'])
+
+    def test_new_optional_methods_reach_native_draft_without_execution(self):
+        if not PROBE:self.skipTest('Compile PreferenceProbe for native construction checks')
+        choices=[('automation-agents','context-handoff','任务自动化：继续工作流，保留权限。','只加载'),
+                 ('coding-debugging','outcome-rubric','修复软件 bug，不发送收费请求。','不同的有效解决路径'),
+                 ('data-analysis','figure-evidence','数据分析：检查 CSV 图表，不编造数据。','样本结构')]
+        for domain,method,original,phrase in choices:
+            with self.subTest(method=method),tempfile.TemporaryDirectory() as tmp:
+                state=copy.deepcopy(self.state)
+                p.remember(state,self.lib,domain,method,'explicit-user')
+                catalog=p.compile_catalog(self.base,state,self.lib)
+                c=Path(tmp)/'catalog.json';q=Path(tmp)/'cases.json'
+                c.write_text(json.dumps(catalog,ensure_ascii=False));q.write_text(json.dumps([original],ensure_ascii=False))
+                row=json.loads(subprocess.check_output([PROBE,str(c),str(q)],text=True))[0]
+                self.assertIn(original,row['text']);self.assertIn(phrase,row['text'])
+                self.assertTrue(row['ai_payload_contains_prepared_draft'])
 
     def test_disabling_recommendations_restores_original_recipe_families(self):
         self.state['recommendations_enabled']=True
