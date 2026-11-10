@@ -3,6 +3,7 @@
   <h1>Snapper Assist</h1>
   <p><strong>Turn a rough thought into a clearer AI request.</strong></p>
   <p>Select → refine → review → replace. Stay in the app where the idea started.</p>
+  <p>Relevant methods for the task. Room for your preferred way of thinking.</p>
   <p>
     <a href="https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.7.1-beta.1">Download the beta</a> ·
     <a href="docs/install.md">Install & AI setup</a> ·
@@ -39,10 +40,25 @@ The focus is on **goals, deliverables, steps, and checks**. The editing rules re
 ## Why try it?
 
 - **Improve the request where you're already writing.** A native Liquid Glass panel sits beside the selection without taking focus from your app. No separate prompt editor to open first.
-- **Start with relevant methods.** Task-aware rules cover study, coding, design, research, writing, and general requests, drawing on attributed practices from Lauren Tan / pstack and other practitioners. [Explore the methods](docs/methods.md).
+- **Give each task a useful starting point.** Study plans, bug reports, research questions and design briefs need different guidance. The optional catalog offers **17 method cards across 14 directions**, with attributed practices from Lauren Tan / pstack and other primary sources. [Explore the methods](docs/method-catalog.md).
+- **Keep your way of working.** Configure Socratic dialogue for academic discussion, for example, without turning every study plan or email into an interview. Explicit domain choices stay separate from public suggestions; your current instructions take priority. [Set a preference](docs/preferences.md).
 - **AI drafts; you decide what changes.** Review the result before copying or replacing it. Undo an applied edit, or disable the toolbar in a particular app. Selection alone never starts a model request.
 
 Prompt editors and selection tools already exist. Snapper Assist focuses on the combination of **request development, selection-side interaction, and reviewable replace/undo** for people who think while they write.
+
+## Different work, different methods
+
+With the optional method data configured, the request can include guidance suited to the task:
+
+| Task | Example method | What it helps clarify |
+| --- | --- | --- |
+| Academic discussion or argument review | Socratic dialogue, when you choose it | Concepts, assumptions and counterexamples; one consequential question at a time. |
+| Research and literature | Evidence synthesis | Claims, supporting sources, disagreements and what has actually been read. |
+| Coding and debugging | Reproduce, investigate, verify | Existing constraints, relevant implementations and checks of the changed user path. |
+| Long-running Agent work | Context handoff, as an alternative | Goals, decisions, evidence locations and the next step without loading the whole knowledge library. |
+| Data and scientific figures | Evidence-led figures, as an alternative | Units, missing values, uncertainty and the intended output. |
+
+These are editing methods for the request you will send. Preferences are currently configured through the collaboration agent or source tools; there is no in-app preference panel. Domain matching uses local keywords, and the detailed preference construction has been checked in Chinese. [Setup and limits](docs/preferences.md).
 
 ## Bring it a rough request
 
@@ -79,10 +95,6 @@ When your own [AI setup](docs/install.md#ai-mode) is ready, click **AI 完善** 
 
 Attribution does not imply endorsement by the cited practitioners. Model-quality, latency, and novelty improvements have not been independently measured.
 
-**Optional domain methods:** explore a [source-backed catalog](docs/method-catalog.md) across 14 seed directions. Suggestions and confirmed personal choices stay separate. Data-only setup, feedback and current Chinese/UI limits are in the [preference guide](docs/preferences.md); this is not automatic history learning.
-
-**A growing research library:** [browse 31 sources and 1,182 indexed entries](docs/source-discovery.md) spanning scientific work, design, coding, data and automation. Reading scope and maintenance notes stay visible; indexed entries are not installed or automatically added to your prompt.
-
 ## Privacy and account use
 
 - Selecting text alone does not send it to a model.
@@ -116,6 +128,12 @@ Use the [test guide](docs/testing.md) and [bug report form](https://github.com/s
 
 ## Methods and acknowledgements
 
-The local knowledge snapshot includes ideas attributed to Lauren Tan / pstack, Ethan Mollick, Addy Osmani, Simon Willison and other primary sources. Methods are selected by task; source inclusion is not proof of a general model-quality benefit. The beta ships a snapshot, not the developer's weekly research automation. [Method notes and source links](docs/methods.md).
+The local knowledge snapshot includes ideas attributed to Lauren Tan / pstack, Ethan Mollick, Addy Osmani, Simon Willison and other primary sources. Methods are selected by task; source inclusion is not proof of a general model-quality benefit. [Method notes and source links](docs/methods.md).
+
+**The library grows through research.** As of November 10, 2026, the [discovery library](docs/source-discovery.md) indexes **31 sources and 1,182 entries**, including skills, plugins, workflows, lessons and role descriptions. Eight specific bodies and fifteen scoped sections have been reviewed; the remaining entries are marked index-only. The compact method catalog contains 17 independently adapted cards, rather than sending this whole index with every request.
+
+The maintainer's configured weekly workflow checks original practitioners, discovers new sources, checks repository changes and migrations, and rotates through concrete examples. Useful findings are reviewed and checked before entering the method data. Personal choices remain separate, and methods can be revised or replaced when another approach fits better.
+
+**For beta users:** the download contains a build-time snapshot. The maintainer's weekly automation is not bundled or automatically installed on your Mac. Updated source and optional method-data setup are available in this repository; the existing ZIP is not silently updated. No third-party Skill is automatically installed or executed, and model-quality gains still require actual comparison.
 
 The project is an independent implementation. [MIT license](LICENSE).
