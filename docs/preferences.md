@@ -1,6 +1,6 @@
 # Domain preferences / 分领域偏好
 
-Snapper can use different editing methods for different kinds of request. A preference for Socratic dialogue in academic discussion does not imply that study plans, email drafts or bug fixes should become a question-and-answer exercise.
+Snapper can use different editing methods for different kinds of request. The expandable [method catalog](method-catalog.md) covers 14 seed directions with source-backed suggestions. A preference for Socratic dialogue in academic discussion does not imply that study plans, email drafts or bug fixes should become a question-and-answer exercise.
 
 This optional data layer works with the installed 0.7.1 app's live recipe loader; rebuilding, re-signing, restarting and renewed Accessibility permission are not required. It is currently managed by the collaboration agent or the commands below, **not a new in-app settings screen**. Automatic feedback collection from Replace/Undo buttons is not connected.
 
@@ -33,6 +33,8 @@ python3 scripts/preferences.py compile --apply
 
 Compilation preserves unrelated local recipes, validates native limits, writes atomically, and keeps a private last-version backup. The recipe revision is derived from its content, so a method change invalidates the existing in-memory AI cache. Run compile again after deliberately replacing the local recipe catalog with a newer research snapshot.
 
+Optional public suggestions can be enabled with `python3 scripts/preferences.py recommendations on`, then `compile --apply`. They are labeled as suggestions, and never become confirmed preferences. Known native recipe families retain their IDs so coding/evidence rules keep working; changing a customized family requires resolving the actual conflict rather than silently dropping its instructions. The scheduled publisher uses a three-way source refresh and reapplies preferences in a single transaction.
+
 Manual feedback and candidate confirmation are optional:
 
 ```sh
@@ -53,7 +55,7 @@ Local domain selection currently uses the existing keyword router. Ambiguous or 
 
 ## 中文说明
 
-目前可分别为“学术讨论”和“观点推敲”保存苏格拉底式提问或论证梳理偏好。只保存明确表达或确认的选择；重复接受只能形成候选，撤回一次不代表长期不喜欢。其他领域继续使用原有配方，不推测用户也喜欢某种方法。
+目前可按目录中的领域保存明确选择；“学术讨论”和“观点推敲”可分别采用苏格拉底式提问或论证梳理。只保存明确表达或确认的选择；重复接受只能形成候选，撤回一次不代表长期不喜欢。其他领域可启用带“建议”标记的来源方法，但不会因此认定用户喜欢它。
 
 苏格拉底式提问以“准确理解 → 澄清概念/前提/证据 → 反例与边界 → 根据回答继续”为方向，每次只问一个关键问题。它是后续对话的交互要求，助手本身仍只完善选文。若本次要求“直接给结论”“不要提问”或“不用苏格拉底法”，以本次要求为先。
 

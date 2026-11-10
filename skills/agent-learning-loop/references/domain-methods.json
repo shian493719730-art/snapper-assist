@@ -1,20 +1,423 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-10.1",
+  "revision": "2026-11-10.2",
   "domains": [
     {
       "id": "academic-dialogue",
       "title": "学术讨论",
-      "keywords": ["学术讨论", "学术", "哲学", "概念辨析", "科学哲学", "认识论", "道德哲学", "论证结构", "苏格拉底", "academic discussion", "philosophy", "epistemology", "socratic", "conceptual analysis"],
+      "keywords": [
+        "学术讨论",
+        "哲学",
+        "概念辨析",
+        "科学哲学",
+        "认识论",
+        "道德哲学",
+        "论证结构",
+        "苏格拉底",
+        "academic discussion",
+        "philosophy",
+        "epistemology",
+        "socratic",
+        "conceptual analysis",
+        "学术探讨",
+        "学术论证",
+        "理论讨论"
+      ],
       "intent": "澄清学术问题、概念和论证，不预设立场已经正确",
-      "methods": ["socratic-dialogue", "argument-map"]
+      "methods": [
+        "socratic-dialogue",
+        "argument-map"
+      ],
+      "default_method": "argument-map",
+      "example": "学术讨论：检查这个观点的概念、前提与反例。",
+      "artifact_kinds": [
+        "对话提示词",
+        "概念澄清"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 90
     },
     {
       "id": "argument-review",
       "title": "观点推敲",
-      "keywords": ["观点优化", "推敲观点", "我的观点", "这个观点", "论点", "论证", "反驳", "反例", "隐含前提", "批判性思考", "critique my argument", "argument", "counterexample", "premise", "thesis"],
+      "keywords": [
+        "观点优化",
+        "推敲观点",
+        "我的观点",
+        "这个观点",
+        "论点",
+        "论证",
+        "反驳",
+        "反例",
+        "隐含前提",
+        "批判性思考",
+        "critique my argument",
+        "argument",
+        "counterexample",
+        "premise",
+        "thesis"
+      ],
       "intent": "准确重建我的观点，检查依据、推理与适用边界，再协助修正表达",
-      "methods": ["socratic-dialogue", "argument-map"]
+      "methods": [
+        "socratic-dialogue",
+        "argument-map"
+      ],
+      "default_method": "argument-map",
+      "example": "学术讨论：检查这个观点的概念、前提与反例。",
+      "artifact_kinds": [
+        "论证图",
+        "修订观点"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 85
+    },
+    {
+      "id": "study-tutoring",
+      "title": "学习与复习",
+      "keywords": [
+        "复习",
+        "期末",
+        "学习",
+        "考试",
+        "备考",
+        "自测",
+        "错题",
+        "背诵",
+        "间隔练习",
+        "study",
+        "exam",
+        "retrieval practice"
+      ],
+      "intent": "依据已有材料安排学习并检查掌握情况",
+      "methods": [
+        "retrieval-plan"
+      ],
+      "default_method": "retrieval-plan",
+      "example": "两小时复习第一章，帮我安排自测。",
+      "artifact_kinds": [
+        "练习安排",
+        "自测题"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 70,
+      "native_recipe_id": "learning"
+    },
+    {
+      "id": "research-synthesis",
+      "title": "研究与证据",
+      "keywords": [
+        "文献综述",
+        "研究",
+        "调研",
+        "文献",
+        "证据综合",
+        "一手来源",
+        "systematic review",
+        "literature review",
+        "research"
+      ],
+      "intent": "围绕研究问题形成可追溯的证据综合",
+      "methods": [
+        "evidence-synthesis"
+      ],
+      "default_method": "evidence-synthesis",
+      "example": "整理这几篇文献的证据与争议。",
+      "artifact_kinds": [
+        "证据表",
+        "研究摘要"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 50,
+      "native_recipe_id": "research"
+    },
+    {
+      "id": "coding-debugging",
+      "title": "软件与排查",
+      "keywords": [
+        "代码",
+        "bug",
+        "修复",
+        "报错",
+        "调试",
+        "接口",
+        "编程",
+        "单元测试",
+        "code",
+        "debug"
+      ],
+      "intent": "从实际问题完成可验证的软件改动",
+      "methods": [
+        "reproduce-verify"
+      ],
+      "default_method": "reproduce-verify",
+      "example": "修复登录报错，保留现有数据。",
+      "artifact_kinds": [
+        "复现步骤",
+        "可验证改动"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 70,
+      "native_recipe_id": "coding"
+    },
+    {
+      "id": "interface-design",
+      "title": "界面与交互",
+      "keywords": [
+        "界面",
+        "页面",
+        "网页",
+        "网站",
+        "交互",
+        "无障碍",
+        "可用性",
+        "ui",
+        "ux",
+        "design"
+      ],
+      "intent": "围绕用户任务改善信息层级与操作体验",
+      "methods": [
+        "task-usability"
+      ],
+      "default_method": "task-usability",
+      "example": "优化设置页面，让主次操作清楚。",
+      "artifact_kinds": [
+        "用户路径",
+        "可运行界面"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 70,
+      "native_recipe_id": "design"
+    },
+    {
+      "id": "writing-editing",
+      "title": "写作与编辑",
+      "keywords": [
+        "邮件",
+        "文案",
+        "润色",
+        "文章",
+        "论文",
+        "报告",
+        "写作",
+        "write",
+        "email",
+        "draft"
+      ],
+      "intent": "写出适合读者与目的且保留事实的文字",
+      "methods": [
+        "reader-revision"
+      ],
+      "default_method": "reader-revision",
+      "example": "帮我润色这段说明，保留原来的语气。",
+      "artifact_kinds": [
+        "正文",
+        "读者检查"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 10,
+      "native_recipe_id": "writing"
+    },
+    {
+      "id": "creative-ideation",
+      "title": "创意与构思",
+      "keywords": [
+        "创意",
+        "灵感",
+        "头脑风暴",
+        "点子",
+        "故事构思",
+        "角色设定",
+        "brainstorm",
+        "ideation"
+      ],
+      "intent": "探索不同方向，再按实际目标收敛",
+      "methods": [
+        "diverge-select"
+      ],
+      "default_method": "diverge-select",
+      "example": "给我几个有区别的故事构思，再比较适用方向。",
+      "artifact_kinds": [
+        "候选方向",
+        "小试验"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 65
+    },
+    {
+      "id": "data-analysis",
+      "title": "数据与分析",
+      "keywords": [
+        "数据分析",
+        "统计分析",
+        "数据质量",
+        "缺失值",
+        "异常值",
+        "探索分析",
+        "csv",
+        "sql",
+        "eda",
+        "data analysis"
+      ],
+      "intent": "先理解数据与问题，再区分探索发现和可支持的结论",
+      "methods": [
+        "eda-check"
+      ],
+      "default_method": "eda-check",
+      "example": "检查这份 CSV 的缺失值和异常分布。",
+      "artifact_kinds": [
+        "分析步骤",
+        "图表"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 75
+    },
+    {
+      "id": "decision-making",
+      "title": "决策与取舍",
+      "keywords": [
+        "决策",
+        "取舍",
+        "方案对比",
+        "风险评估",
+        "预演失败",
+        "选型",
+        "decision",
+        "premortem",
+        "比较",
+        "方案"
+      ],
+      "intent": "在目标、证据和不确定性下比较方案",
+      "methods": [
+        "premortem-options"
+      ],
+      "default_method": "premortem-options",
+      "example": "比较两种方案，看看最可能忽略了什么。",
+      "artifact_kinds": [
+        "方案比较",
+        "假设清单"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 55
+    },
+    {
+      "id": "product-discovery",
+      "title": "产品与需求",
+      "keywords": [
+        "产品需求",
+        "用户访谈",
+        "用户痛点",
+        "机会树",
+        "产品定位",
+        "需求发现",
+        "prd",
+        "product discovery"
+      ],
+      "intent": "连接真实用户问题、期望结果与可验证的方案",
+      "methods": [
+        "opportunity-evidence"
+      ],
+      "default_method": "opportunity-evidence",
+      "example": "把用户访谈整理成可验证的产品需求。",
+      "artifact_kinds": [
+        "需求证据",
+        "机会图"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 75
+    },
+    {
+      "id": "automation-agents",
+      "title": "自动化与 Agent",
+      "keywords": [
+        "自动化",
+        "工作流",
+        "多agent",
+        "agent",
+        "任务编排",
+        "工具调用",
+        "automation",
+        "workflow"
+      ],
+      "intent": "选择适当的自动化结构并保留可检查的执行边界",
+      "methods": [
+        "workflow-routing"
+      ],
+      "default_method": "workflow-routing",
+      "example": "设计一个资料收集工作流，明确输入和失败恢复。",
+      "artifact_kinds": [
+        "流程方案",
+        "交接契约"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "native_title": "任务自动化",
+      "routing_priority": 75
+    },
+    {
+      "id": "knowledge-management",
+      "title": "知识与资料",
+      "keywords": [
+        "知识库",
+        "笔记",
+        "资料管理",
+        "整理资料",
+        "归档",
+        "para",
+        "obsidian",
+        "knowledge management"
+      ],
+      "intent": "让已有资料围绕任务可检索、可复用",
+      "methods": [
+        "actionable-notes"
+      ],
+      "default_method": "actionable-notes",
+      "example": "整理这些笔记，方便下次写报告时找到。",
+      "artifact_kinds": [
+        "索引",
+        "资料结构"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 65
+    },
+    {
+      "id": "communication",
+      "title": "沟通与协作",
+      "keywords": [
+        "沟通",
+        "周报",
+        "会议纪要",
+        "工作汇报",
+        "回复消息",
+        "团队更新",
+        "faq",
+        "3p update",
+        "status update"
+      ],
+      "intent": "让沟通对象理解重点、所需行动和未决问题",
+      "methods": [
+        "audience-action"
+      ],
+      "default_method": "audience-action",
+      "example": "把这周的进展和卡点写成简洁周报。",
+      "artifact_kinds": [
+        "消息草稿",
+        "进展简报"
+      ],
+      "interaction_style": "按本次要求选择；历史偏好独立保存",
+      "taxonomy_mapping": "editorial, revisable; original source labels retained in sources",
+      "routing_priority": 70
     }
   ],
   "methods": [
@@ -31,8 +434,17 @@
         "本次明确要求优先于历史偏好：如果要求直接给结论、不要提问或不用苏格拉底法，改为直接整理观点、依据与边界，不加入提问流程。否则采用一次一个关键问题的苏格拉底式对话。",
         "保留原文观点与材料；区分事实、推断和待确认前提，用恰当的反例检验，不虚构出处，不用引导性问题诱导我同意预设答案。"
       ],
-      "source_ids": ["plato-meno", "uantwerp-socratic"],
-      "source_note": "现代产品适配：概念澄清参考《美诺篇》；一次清晰提问和留出回答空间参考安特卫普大学教学建议。非逐字复刻，也不声称适合所有任务。"
+      "source_ids": [
+        "plato-meno",
+        "uantwerp-socratic"
+      ],
+      "source_note": "现代产品适配：概念澄清参考《美诺篇》；一次清晰提问和留出回答空间参考安特卫普大学教学建议。非逐字复刻，也不声称适合所有任务。",
+      "status": "source-reviewed",
+      "kind": "prompt-method",
+      "not_for": [
+        "原文明确要求不使用此方法"
+      ],
+      "validation": "Chinese construction checked; paid model benefit unmeasured"
     },
     {
       "id": "argument-map",
@@ -43,13 +455,697 @@
         "检查推理跳步、最强反例与适用边界，区分事实、推断和价值判断。",
         "按本次要求给出分析、改写或进一步讨论；没有确认提问偏好时，不强制采用苏格拉底式对话。"
       ],
-      "checks": ["保留原文核心观点与事实，不补造证据。", "区分论证有效性、前提可信度与表达质量，不把不同意当作论证失败。"],
-      "source_ids": [],
-      "source_note": "产品默认整理规则，不代表用户的已确认偏好。"
+      "checks": [
+        "保留原文核心观点与事实，不补造证据。",
+        "区分论证有效性、前提可信度与表达质量，不把不同意当作论证失败。"
+      ],
+      "source_ids": [
+        "fabric-claims"
+      ],
+      "source_note": "独立改写：借鉴主张、支持证据与反证的分解；不采用来源的立场标签、真伪评分和强制推理话术。",
+      "status": "source-reviewed",
+      "kind": "prompt-method",
+      "not_for": [
+        "原文明确要求不使用此方法"
+      ],
+      "validation": "Chinese construction checked; paid model benefit unmeasured"
+    },
+    {
+      "id": "retrieval-plan",
+      "title": "提取练习与间隔安排",
+      "short_title": "提取练习",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "依据我已有的材料列重点，安排先回忆或解题、再核对与纠错；没有材料时标出缺口，不编造考试范围。",
+        "根据可用时间和实际薄弱点调整练习顺序；只有涉及跨天学习时才建议间隔安排。",
+        "把已掌握、答错与仍不确定的内容分开，给出当前可以开始的一步；若我只要求解释概念，不强加完整复习排程。"
+      ],
+      "checks": [
+        "用具体问题或例题检查理解，保留我的时间限制与资料范围。",
+        "建议可调整；不承诺学习效果或把所有学习方法同时套入。"
+      ],
+      "source_ids": [
+        "learning-scientists"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "不适用于只想得到简短定义而不想练习的任务"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "evidence-synthesis",
+      "title": "问题—证据—缺口",
+      "short_title": "证据综合",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "先明确研究问题、范围和来源要求，用主张、支持材料、反证与不确定性组织结果。",
+        "区分作者原意、事实和自己的推断，记录可追溯出处；未查阅的材料不写成已读，不编造文献。",
+        "只有明确进行正式系统综述时才考虑报告规范；普通调研不机械套用完整综述清单。"
+      ],
+      "checks": [
+        "保留相互冲突的证据与适用条件，不预设结论。",
+        "先利用已有资料；缺少关键证据时注明缺口，不以引用数量代替质量。"
+      ],
+      "source_ids": [
+        "fabric-claims",
+        "prisma"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "普通问题不强制升级为正式系统综述"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "reproduce-verify",
+      "title": "复现—定位—验证",
+      "short_title": "复现验证",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "延续已有项目，先复现相关问题或明确预期行为，再定位最小相关原因。",
+        "参考现有实现和适合的开源方案，检查适配、许可证与维护状态；保留无关本地修改和数据边界。",
+        "完成必要改动后验证用户路径及相关失败情况，说明实际结果和仍未验证的部分。"
+      ],
+      "checks": [
+        "不把编译成功、静态预览或接口清单当作完整功能成功。",
+        "验证方法与改动风险相称；本次限制优先，付费请求与对外动作沿用已有授权。"
+      ],
+      "source_ids": [
+        "pstack"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "只问概念时不强制开发、测试或创建多个 Agent"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "task-usability",
+      "title": "任务路径与可用性检查",
+      "short_title": "任务体验",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "以用户要完成的任务组织信息层级、主次动作和状态反馈，依据现有平台与风格约束设计。",
+        "检查状态可见性、控制与撤回、错误恢复及必要信息的可发现性，不为装饰增加无关步骤。",
+        "在实际尺寸与用户路径中验证方案，说明设计取舍；缺少用户证据时把判断标为假设。"
+      ],
+      "checks": [
+        "保留原有任务与关键内容，避免把个人偏好的风格当作普遍标准。",
+        "检查正常、加载、失败和空状态；静态图与运行结果分别标注。"
+      ],
+      "source_ids": [
+        "nng-heuristics"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "不把每个界面任务都套成完整设计思维流程"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "reader-revision",
+      "title": "读者与目的校验",
+      "short_title": "读者校验",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "先依据已知用途和读者整理中心信息、结构与语气，保留原文立场和事实。",
+        "给出可以使用的正文或必要的简短备选，用读者能理解的表达补清缺口。",
+        "从不了解背景的读者角度检查是否能理解重点及下一步；不虚构人名、数据或收件人信息。"
+      ],
+      "checks": [
+        "原文限制、语气与篇幅优先，不把普通润色变成工程验收。",
+        "需要新背景时标注待补充，不额外调用评委模型或创建新 Agent。"
+      ],
+      "source_ids": [
+        "google-audience",
+        "anthropic-docs"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "短句润色不强制访谈、读者模型或多轮流程"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "diverge-select",
+      "title": "发散与有条件收敛",
+      "short_title": "发散收敛",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "依据已有目标与约束提出有区别的方向，可以尝试跨领域组合或质疑惯常假设，不只改写同一个点子。",
+        "把探索与选择分开，说明各方向的用途、差异和代价，按我关心的标准收敛。",
+        "保留值得小规模试验的新路径，用草图、短例或可观察试验判断；不要宣称未经检索的想法前所未有。"
+      ],
+      "checks": [
+        "不为追求新奇违背事实与硬约束。",
+        "按任务需要选择方法；不强制固定数量或复制整套卡片流程。"
+      ],
+      "source_ids": [
+        "dschool"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "已经明确执行方案时不要无故重新发散"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "eda-check",
+      "title": "探索分析与假设检查",
+      "short_title": "探索分析",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "先确认分析问题、字段含义和可用数据，检查缺失、异常、单位与口径；没有数据时不编造结果。",
+        "用合适的汇总与图形探索结构，明确依赖的假设和可能的替代解释。",
+        "区分探索线索、统计不确定性与能够支持的结论，提供可复核的分析步骤或代码。"
+      ],
+      "checks": [
+        "不把相关性当作因果，不以漂亮图形代替数据核对。",
+        "只处理明确提供或授权的数据；表格整理不强制统计建模。"
+      ],
+      "source_ids": [
+        "nist-eda"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "简单格式转换不强制复杂分析"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "premortem-options",
+      "title": "方案比较与失败预演",
+      "short_title": "方案取舍",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "按已知目标、硬约束和评价标准比较可行选项，说明证据与关键未知项。",
+        "若已有拟采用的计划，可假设它执行后失败，列出值得检查的潜在原因和可回退措施。",
+        "给出有条件的建议及哪些新证据会改变判断；把失败预演标为假设，不编造概率。"
+      ],
+      "checks": [
+        "本次选择标准优先，不把单一框架当作唯一解。",
+        "信息充分的部分先推进；普通选择不制造冗长风险表。"
+      ],
+      "source_ids": [
+        "premortem"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "没有既定计划时不把失败预演当成事实分析"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "opportunity-evidence",
+      "title": "结果—机会—假设试验",
+      "short_title": "机会验证",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "区分希望达到的结果、已有用户证据和候选解决方案，不把想做的功能直接当成用户需求。",
+        "围绕有依据的问题比较可行方案，标出最关键的假设和低成本检查方式。",
+        "缺少访谈或观察时把机会标成待验证；根据任务规模决定是否画机会树，不强制完整框架。"
+      ],
+      "checks": [
+        "不虚构用户访谈、市场数据或已验证的痛点。",
+        "保留本次产品范围与资源限制，按实际风险选择试验。"
+      ],
+      "source_ids": [
+        "product-ost"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "单个小功能实现不强制重新做完整需求发现"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "workflow-routing",
+      "title": "按任务选择工作流结构",
+      "short_title": "任务编排",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "先明确输入、期望结果、状态与失败恢复，优先使用足以完成任务的简单结构。",
+        "稳定可分步骤的任务可用顺序流程，不同任务类型可用路由；只有依赖与收益明确时才考虑并行或多 Agent。",
+        "明确交接的数据、检查点与用户控制；选择模式不代表已经执行，不擅自增加工具、额度或权限。"
+      ],
+      "checks": [
+        "不把多 Agent 数量、工作流图或模型自评当成成功证据。",
+        "沿用本次授权与支出边界，不因方法推荐自动发出额外模型请求。"
+      ],
+      "source_ids": [
+        "anthropic-workflows"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "简单任务不强制复杂 Agent 架构"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "actionable-notes",
+      "title": "围绕用途组织资料",
+      "short_title": "资料组织",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "先明确资料将支持什么任务，保留来源和必要上下文，区分当前项目、持续责任、参考资源与归档内容。",
+        "用少量清楚的分类、索引或链接帮助以后找到和使用，不把分类数量当作整理成果。",
+        "先给出可审阅的整理建议；文件移动、删除或全盘扫描沿用明确授权，不能由分类建议代替。"
+      ],
+      "checks": [
+        "不丢掉原始出处，也不把一种目录结构当成每个人唯一合适的系统。",
+        "已有分类有用时保留映射，避免无意义重命名和重复复制。"
+      ],
+      "source_ids": [
+        "para"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "只需摘要时不强制重组知识库"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
+    },
+    {
+      "id": "audience-action",
+      "title": "对象—重点—行动",
+      "short_title": "沟通重点",
+      "kind": "prompt-method",
+      "status": "source-reviewed",
+      "deliverables": [
+        "根据已知对象和场景确定重点、语气和必要背景，保留我的事实与立场。",
+        "区分进展、下一步与卡点，或按实际沟通类型组织；需要对方采取的行动要明确。",
+        "已有组织模板时优先沿用；缺少组织背景不编造，也不强制把所有消息变成周报。"
+      ],
+      "checks": [
+        "不替我发送消息或做出承诺；保留收件人、语气和授权边界。",
+        "短消息保持简洁，不强制补齐所有分类栏。"
+      ],
+      "source_ids": [
+        "anthropic-comms",
+        "google-audience"
+      ],
+      "source_note": "有来源的独立产品适配；仅作为可选建议，不代表用户已经喜欢或验证过模型收益。",
+      "not_for": [
+        "日常短回复不强制企业汇报模板"
+      ],
+      "validation": "Pending current native construction checks; no paid model comparison"
     }
   ],
   "sources": [
-    {"id":"plato-meno","author":"Plato; translated by Benjamin Jowett","url":"https://classics.mit.edu/Plato/meno.html","checked_on":"2026-11-10"},
-    {"id":"uantwerp-socratic","author":"University of Antwerp, Centre of Expertise for Higher Education","url":"https://www.uantwerpen.be/en/centres/centre-expertise-higher-education/didactic-information/teaching-tips/activating-students/socratic-method/","checked_on":"2026-11-10"}
-  ]
+    {
+      "id": "plato-meno",
+      "author": "Plato; translated by Benjamin Jowett",
+      "url": "https://classics.mit.edu/Plato/meno.html",
+      "checked_on": "2026-11-10",
+      "title": "plato-meno",
+      "status": "read",
+      "read_scope": "body",
+      "native_labels": [],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "Modern product adaptation; not universal effectiveness evidence."
+    },
+    {
+      "id": "uantwerp-socratic",
+      "author": "University of Antwerp, Centre of Expertise for Higher Education",
+      "url": "https://www.uantwerpen.be/en/centres/centre-expertise-higher-education/didactic-information/teaching-tips/activating-students/socratic-method/",
+      "checked_on": "2026-11-10",
+      "title": "uantwerp-socratic",
+      "status": "read",
+      "read_scope": "body",
+      "native_labels": [],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "Modern product adaptation; not universal effectiveness evidence."
+    },
+    {
+      "id": "fabric-index",
+      "title": "Fabric pattern library",
+      "author": "Daniel Miessler and contributors",
+      "url": "https://github.com/danielmiessler/fabric/tree/main/data/patterns",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "directory and README",
+      "native_labels": [
+        "analyze_claims",
+        "summarize",
+        "analyze_paper"
+      ],
+      "reuse_note": "MIT; independently summarized, no prompt copied",
+      "limitations": "Directory presence is not outcome evidence."
+    },
+    {
+      "id": "fabric-claims",
+      "title": "Analyze claims pattern",
+      "author": "Fabric contributors",
+      "url": "https://github.com/danielmiessler/fabric/blob/main/data/patterns/analyze_claims/system.md",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "pattern body",
+      "native_labels": [
+        "claims",
+        "evidence"
+      ],
+      "reuse_note": "MIT; independent adaptation",
+      "limitations": "Do not inherit political labels, truth grades, or demands for private reasoning."
+    },
+    {
+      "id": "fabric-summary",
+      "title": "Summarize pattern",
+      "author": "Fabric contributors",
+      "url": "https://github.com/danielmiessler/fabric/blob/main/data/patterns/summarize/system.md",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "pattern body",
+      "native_labels": [
+        "summary",
+        "takeaways"
+      ],
+      "reuse_note": "MIT; independent adaptation",
+      "limitations": "Fixed item/word counts are not generally appropriate."
+    },
+    {
+      "id": "anthropic-skills",
+      "title": "Anthropic Skills examples",
+      "author": "Anthropic",
+      "url": "https://github.com/anthropics/skills",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "README and directory",
+      "native_labels": [
+        "creative",
+        "technical",
+        "enterprise"
+      ],
+      "reuse_note": "Per-skill licenses; verify before importing code",
+      "limitations": "Examples are not guaranteed to match production behavior."
+    },
+    {
+      "id": "anthropic-comms",
+      "title": "Internal communications skill",
+      "author": "Anthropic",
+      "url": "https://github.com/anthropics/skills/blob/main/skills/internal-comms/SKILL.md",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "SKILL.md body",
+      "native_labels": [
+        "internal-comms",
+        "3P updates"
+      ],
+      "reuse_note": "Per-skill LICENSE.txt; link and own summary",
+      "limitations": "Organization-specific formats require the actual organization context."
+    },
+    {
+      "id": "anthropic-docs",
+      "title": "Document coauthoring skill",
+      "author": "Anthropic",
+      "url": "https://github.com/anthropics/skills/blob/main/skills/doc-coauthoring/SKILL.md",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "SKILL.md body",
+      "native_labels": [
+        "Context Gathering",
+        "Reader Testing"
+      ],
+      "reuse_note": "Per-skill license; link and own summary",
+      "limitations": "Do not import its mandatory interview or extra model/subagent calls."
+    },
+    {
+      "id": "prompts-chat",
+      "title": "Prompts.chat library",
+      "author": "Fatih Kadir Akin and community",
+      "url": "https://prompts.chat/prompts",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "catalog UI and repository README",
+      "native_labels": [
+        "Type",
+        "Category",
+        "Tags"
+      ],
+      "reuse_note": "Site/code MIT; submitted prompt data CC0 per README",
+      "limitations": "User-submitted prompts are discovery leads, not validated techniques."
+    },
+    {
+      "id": "dair-guide",
+      "title": "Prompt Engineering Guide",
+      "author": "DAIR.AI",
+      "url": "https://www.promptingguide.ai/",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "site taxonomy and README",
+      "native_labels": [
+        "Techniques",
+        "Applications",
+        "Prompt Hub"
+      ],
+      "reuse_note": "MIT repository; link and own summary",
+      "limitations": "Technique names do not establish applicability, model quality, or a need for extra reasoning."
+    },
+    {
+      "id": "dspy",
+      "title": "DSPy",
+      "author": "Stanford NLP and contributors",
+      "url": "https://dspy.ai/current/",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "documentation overview and README",
+      "native_labels": [
+        "Signatures",
+        "Metrics",
+        "Optimizers"
+      ],
+      "reuse_note": "MIT",
+      "limitations": "Optimization requires examples, a metric and authorized execution; not enabled by a phrase."
+    },
+    {
+      "id": "openai-skills-legacy",
+      "title": "Legacy skills repository",
+      "author": "OpenAI",
+      "url": "https://github.com/openai/skills",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "README",
+      "native_labels": [
+        ".system",
+        ".curated"
+      ],
+      "reuse_note": "Per-skill license",
+      "limitations": "Deprecated; migration to openai/plugins is explicitly stated."
+    },
+    {
+      "id": "openai-plugins",
+      "title": "Current plugin examples",
+      "author": "OpenAI",
+      "url": "https://github.com/openai/plugins",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "README",
+      "native_labels": [
+        "plugins",
+        "skills",
+        "agents"
+      ],
+      "reuse_note": "Per-plugin licensing; link and own summary",
+      "limitations": "A plugin may contain tools and scripts; discovery does not authorize installation/execution."
+    },
+    {
+      "id": "pstack",
+      "title": "pstack workflow entry",
+      "author": "Lauren Tan / poteto",
+      "url": "https://github.com/cursor/plugins/tree/main/pstack",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "README",
+      "native_labels": [
+        "investigation",
+        "bug fix",
+        "eval"
+      ],
+      "reuse_note": "Check repository/per-package license before code reuse",
+      "limitations": "First-person workflow claims are not a comparative benchmark or permission to delegate."
+    },
+    {
+      "id": "nng-heuristics",
+      "title": "Ten usability heuristics",
+      "author": "Jakob Nielsen / NNGroup",
+      "url": "https://www.nngroup.com/articles/ten-usability-heuristics/",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "article body",
+      "native_labels": [
+        "status",
+        "control",
+        "minimalism"
+      ],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "Broad design heuristics; actual interface testing remains necessary."
+    },
+    {
+      "id": "learning-scientists",
+      "title": "Six strategies for effective learning",
+      "author": "Megan Smith and Yana Weinstein",
+      "url": "https://www.learningscientists.org/blog/2016/8/18-1",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "article body",
+      "native_labels": [
+        "Spacing",
+        "Retrieval Practice",
+        "Interleaving"
+      ],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "General learning evidence is not proof of this AI helper improving learning."
+    },
+    {
+      "id": "nist-eda",
+      "title": "What is exploratory data analysis?",
+      "author": "NIST/SEMATECH",
+      "url": "https://www.itl.nist.gov/div898/handbook/eda/section1/eda11.htm",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "handbook body",
+      "native_labels": [
+        "assumptions",
+        "graphics",
+        "outliers"
+      ],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "Exploratory findings do not establish causality or confirm a predeclared hypothesis."
+    },
+    {
+      "id": "google-audience",
+      "title": "Audience in technical writing",
+      "author": "Google",
+      "url": "https://developers.google.com/tech-writing/one/audience",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "lesson body",
+      "native_labels": [
+        "audience",
+        "knowledge",
+        "task"
+      ],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "Adapt the audience analysis to the actual reader; no invented company context."
+    },
+    {
+      "id": "prisma",
+      "title": "PRISMA 2020 checklist",
+      "author": "PRISMA Executive",
+      "url": "https://www.prisma-statement.org/prisma-2020-checklist",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "checklist landing page",
+      "native_labels": [
+        "checklist",
+        "expanded checklist"
+      ],
+      "reuse_note": "CC BY 4.0; link only here",
+      "limitations": "Checklist contents were not fully audited in this scan; formal compliance is not claimed."
+    },
+    {
+      "id": "product-ost",
+      "title": "Opportunity solution trees",
+      "author": "Teresa Torres / Product Talk",
+      "url": "https://www.producttalk.org/opportunity-solution-trees/",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "article body",
+      "native_labels": [
+        "outcome",
+        "opportunity",
+        "assumptions"
+      ],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "Customer evidence is a prerequisite; do not invent interview findings."
+    },
+    {
+      "id": "para",
+      "title": "PARA method",
+      "author": "Tiago Forte",
+      "url": "https://fortelabs.com/blog/para/",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "article body",
+      "native_labels": [
+        "Projects",
+        "Areas",
+        "Resources",
+        "Archives"
+      ],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "An optional organizing scheme, not authorization to scan or reorganize files."
+    },
+    {
+      "id": "anthropic-workflows",
+      "title": "Building effective agents",
+      "author": "Anthropic",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "article body",
+      "native_labels": [
+        "routing",
+        "chaining",
+        "evaluator-optimizer"
+      ],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "Article notes tooling changed since 2024; use as conceptual patterns, not current SDK instructions."
+    },
+    {
+      "id": "dschool",
+      "title": "Design Thinking Bootleg",
+      "author": "Stanford d.school",
+      "url": "https://dschool.stanford.edu/tools/design-thinking-bootleg",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "resource page",
+      "native_labels": [
+        "Empathize",
+        "Ideate",
+        "Test"
+      ],
+      "reuse_note": "CC BY-NC-SA 4.0 resource; no deck/card content redistributed",
+      "limitations": "Read the resource page, not every card. Use as discovery lead and independently formulate the prompt."
+    },
+    {
+      "id": "premortem",
+      "title": "Premortem risk assessment",
+      "author": "Gary Klein",
+      "url": "https://www.gary-klein.com/premortem",
+      "checked_on": "2026-11-10",
+      "status": "read",
+      "read_scope": "author page",
+      "native_labels": [
+        "PRE-MORTEM"
+      ],
+      "reuse_note": "Link and independently written summary",
+      "limitations": "Potential failure scenarios are hypotheses, not established probabilities."
+    }
+  ],
+  "classification_axes": [
+    "domain",
+    "task",
+    "method",
+    "artifact",
+    "interaction_style",
+    "source_native_labels",
+    "evidence_status"
+  ],
+  "policy": {
+    "recommendation_is_preference": false,
+    "arbitrary_skill_execution": false,
+    "source_taxonomy_is_revisable": true,
+    "model_benefit_measured": false
+  }
 }

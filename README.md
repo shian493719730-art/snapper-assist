@@ -79,7 +79,7 @@ When your own [AI setup](docs/install.md#ai-mode) is ready, click **AI 完善** 
 
 Attribution does not imply endorsement by the cited practitioners. Model-quality, latency, and novelty improvements have not been independently measured.
 
-**Optional domain preferences:** keep confirmed method choices separate for academic discussion and argument review. Data-only setup, candidate feedback and current Chinese/UI limits are described in the [preference guide](docs/preferences.md); this is not an automatic history-learning feature.
+**Optional domain methods:** explore a [source-backed catalog](docs/method-catalog.md) across 14 seed directions. Suggestions and confirmed personal choices stay separate. Data-only setup, feedback and current Chinese/UI limits are in the [preference guide](docs/preferences.md); this is not automatic history learning.
 
 ## Privacy and account use
 

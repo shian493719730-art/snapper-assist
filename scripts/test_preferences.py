@@ -86,6 +86,66 @@ class Preferences(unittest.TestCase):
             self.assertEqual(os.stat(output).st_mode & 0o777,0o600)
             self.assertEqual(p.read(output.with_name(output.name+'.before-domain-profiles.json')),self.base)
 
+    def test_recommendations_never_become_personal_preferences(self):
+        self.confirm(); self.state['recommendations_enabled']=True
+        result=p.compile_catalog(self.base,self.state,self.lib)
+        self.assertEqual(len(result['recipes']),15)
+        self.assertEqual(set(self.state['preferences']),{'academic-dialogue'})
+        academic=next(r for r in result['recipes'] if r['id']=='academic-dialogue')
+        data=next(r for r in result['recipes'] if r['id']=='data-analysis')
+        self.assertEqual(academic[p.MARKER]['origin'],'explicit-user')
+        self.assertEqual(data[p.MARKER]['origin'],'curated-recommendation')
+        self.assertIn('建议',data['title'])
+
+    def test_unread_source_is_not_compiled_as_recommendation(self):
+        self.state['recommendations_enabled']=True
+        next(s for s in self.lib['sources'] if s['id']=='nist-eda')['status']='pending'
+        result=p.compile_catalog(self.base,self.state,self.lib)
+        self.assertFalse(any(r['id']=='data-analysis' for r in result['recipes']))
+
+    def test_refresh_retains_local_edit_and_updates_unrelated_recipe(self):
+        local=copy.deepcopy(self.base);local['recipes'][0]['deliverables'].append('Local preference.')
+        local=p.compile_catalog(local,self.state,self.lib)
+        incoming=copy.deepcopy(self.base);incoming['recipes'][1]['checks'].append('New source check.')
+        merged=p.refresh_base(incoming,local)
+        self.assertIn('Local preference.',merged['recipes'][0]['deliverables'])
+        self.assertIn('New source check.',merged['recipes'][1]['checks'])
+
+    def test_refresh_conflict_stops_instead_of_losing_local_edit(self):
+        local=copy.deepcopy(self.base);local['recipes'][0]['deliverables'].append('Local edit.')
+        local=p.compile_catalog(local,self.state,self.lib)
+        incoming=copy.deepcopy(self.base);incoming['recipes'][0]['deliverables'].append('Different source edit.')
+        with self.assertRaises(ValueError): p.refresh_base(incoming,local)
+
+    def test_native_broad_recommendation_routes(self):
+        if not PROBE:self.skipTest('Compile PreferenceProbe for native construction checks')
+        self.confirm();self.confirm('argument-review');self.state['recommendations_enabled']=True
+        catalog=p.compile_catalog(self.base,self.state,self.lib)
+        domains=self.lib['domains'];cases=[d['example'] for d in domains]
+        # Distinguish the two academic lanes and preserve every request verbatim.
+        cases[0]='学术讨论：什么算作知识？';cases[1]='推敲我的观点：效率总是最重要的。'
+        with tempfile.TemporaryDirectory() as tmp:
+            c=Path(tmp)/'catalog.json';q=Path(tmp)/'cases.json';c.write_text(json.dumps(catalog,ensure_ascii=False));q.write_text(json.dumps(cases,ensure_ascii=False))
+            result=json.loads(subprocess.check_output([PROBE,str(c),str(q),str(p.ROOT/'desktop/knowledge.json')],text=True))
+        self.assertEqual([r['recipe'] for r in result],[d.get('native_recipe_id',d['id']) for d in domains])
+        for text,r in zip(cases,result):self.assertIn(text,r['text'])
+        for r in result[2:]:self.assertNotIn('苏格拉底',r['text'])
+        coding=result[4]
+        self.assertIn('GitHub',' '.join(coding['problem_preferences']))
+        self.assertIn('evidence-first',coding['method_ids'])
+
+    def test_disabling_recommendations_restores_original_recipe_families(self):
+        self.state['recommendations_enabled']=True
+        active=p.compile_catalog(self.base,self.state,self.lib)
+        self.state['recommendations_enabled']=False
+        restored=p.compile_catalog(active,self.state,self.lib)
+        self.assertEqual(restored['recipes'],self.base['recipes'])
+
+    def test_recommendation_overlay_never_drops_local_customization(self):
+        self.state['recommendations_enabled']=True
+        self.base['recipes'][0]['deliverables'].append('Local custom instruction.')
+        with self.assertRaises(ValueError):p.compile_catalog(self.base,self.state,self.lib)
+
     def test_actual_native_domain_routing_and_prompt_boundaries(self):
         if not PROBE: self.skipTest('Compile PreferenceProbe for native construction checks')
         self.confirm();self.confirm('argument-review')
@@ -97,7 +157,7 @@ class Preferences(unittest.TestCase):
                  '学术讨论：'+('保留我的论证与材料，不编造事实。'*30)]
         with tempfile.TemporaryDirectory() as tmp:
             c=Path(tmp)/'catalog.json';q=Path(tmp)/'cases.json';c.write_text(json.dumps(catalog,ensure_ascii=False));q.write_text(json.dumps(cases,ensure_ascii=False))
-            result=json.loads(subprocess.check_output([PROBE,str(c),str(q)],text=True))
+            result=json.loads(subprocess.check_output([PROBE,str(c),str(q),str(p.ROOT/'desktop/knowledge.json')],text=True))
         expected=['academic-dialogue','argument-review','argument-review','academic-dialogue','learning','coding','design','writing','writing','research','academic-dialogue']
         self.assertEqual([r['recipe'] for r in result],expected)
         for original,r in zip(cases,result):

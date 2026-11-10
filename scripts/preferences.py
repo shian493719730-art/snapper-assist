@@ -14,10 +14,12 @@ from pathlib import Path
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-LIBRARY = ROOT / 'skills/agent-learning-loop/references/domain-methods.json'
-BASE = ROOT / 'skills/agent-learning-loop/references/prompt-recipes.json'
+REFERENCES = ROOT / 'references' if (ROOT / 'references/domain-methods.json').is_file() else ROOT / 'skills/agent-learning-loop/references'
+LIBRARY = REFERENCES / 'domain-methods.json'
+BASE = REFERENCES / 'prompt-recipes.json'
 HOME = Path.home() / '.codex/agent-learning-loop'
 MARKER = '_snapper_domain_profile'
+SOURCE_BASE = '_snapper_source_base'
 
 
 def read(path):
@@ -81,24 +83,75 @@ def compile_catalog(base, state, library):
     if base.get('schema_version') != 1:
         raise ValueError('Unsupported catalog')
     result = copy.deepcopy(base)
+    result.setdefault(SOURCE_BASE, copy.deepcopy(read(BASE)['recipes']))
     # Preserve every unrelated recipe and customization. Reject ID collisions.
-    retained = [r for r in result['recipes'] if not r.get(MARKER)]
+    retained = base_recipes(result)
     ids = {r['id'] for r in retained}
+    retained_by_id = {r['id']:r for r in retained}
+    previous_source = {r['id']:r for r in result[SOURCE_BASE]}
+    replaced = set()
     profiles = []
+    known_sources = {s['id'] for s in library['sources'] if s.get('status') == 'read'}
     for d in library['domains']:
         pref = state['preferences'].get(d['id'])
-        if not pref or pref.get('status') != 'confirmed': continue
-        _, m = domain_and_method(library, d['id'], pref['method'])
-        if d['id'] in ids: raise ValueError('Custom recipe ID collision: ' + d['id'])
-        profiles.append({'id': d['id'], 'title': d['title'] + ' · ' + m['short_title'],
+        confirmed = pref and pref.get('status') == 'confirmed'
+        if not confirmed and not state.get('recommendations_enabled', False): continue
+        method_id = pref['method'] if confirmed else d.get('default_method')
+        if not method_id: continue
+        _, m = domain_and_method(library, d['id'], method_id)
+        if not confirmed and (m.get('status') != 'source-reviewed' or not m['source_ids'] or not all(s in known_sources for s in m['source_ids'])):
+            continue
+        native_id = d.get('native_recipe_id',d['id'])
+        local_base = None
+        if native_id in ids:
+            if native_id == d['id'] or native_id not in ['learning','coding','design','research','writing']:
+                raise ValueError('Custom recipe ID collision: ' + native_id)
+            local_base = retained_by_id[native_id]
+            if local_base != previous_source.get(native_id):
+                raise ValueError('Method overlay conflicts with local recipe edit: ' + native_id)
+            replaced.add(native_id)
+        origin = pref['origin'] if confirmed else 'curated-recommendation'
+        profiles.append({'id': native_id, 'title': d.get('native_title', d['title']) + ' · ' + m['short_title'] + ('' if confirmed else '·建议'),
             'keywords': d['keywords'], 'intent': d['intent'],
             'deliverables': m['deliverables'], 'checks': m['checks'],
             'questions': [], 'source_ids': m['source_ids'],
-            MARKER: {'method': m['id'], 'origin': pref['origin'], 'library_revision': library['revision']}})
-    result['recipes'] = profiles + retained
+            MARKER: {'domain':d['id'],'method': m['id'], 'origin': origin, 'library_revision': library['revision'], 'routing_priority': d.get('routing_priority',0), 'base_recipe':local_base}})
+    # Specific task families win keyword ties over broad writing/research lanes.
+    profiles.sort(key=lambda r: -r[MARKER]['routing_priority'])
+    result['recipes'] = profiles + [r for r in retained if r['id'] not in replaced]
     validate_catalog(result)
     digest = hashlib.sha256(json.dumps(result['recipes'], ensure_ascii=False, sort_keys=True).encode()).hexdigest()[:12]
     result['revision'] = 'domain-' + library['revision'] + '-' + digest
+    return result
+
+
+def base_recipes(catalog):
+    values=[]
+    for r in catalog['recipes']:
+        if not r.get(MARKER):values.append(r)
+        elif r[MARKER].get('base_recipe'):values.append(r[MARKER]['base_recipe'])
+    order={r['id']:i for i,r in enumerate(catalog.get(SOURCE_BASE,values))}
+    return sorted(values,key=lambda r:order.get(r['id'],len(order)))
+
+
+def refresh_base(incoming, existing):
+    """Three-way refresh: preserve unrelated/local edits and fail on conflicts."""
+    previous = existing.get(SOURCE_BASE)
+    if previous is None:
+        raise ValueError('No previous source snapshot; review local edits before refreshing')
+    old = {r['id']: r for r in previous}
+    local = {r['id']: r for r in base_recipes(existing)}
+    fresh = {r['id']: r for r in incoming['recipes']}
+    merged = []
+    for identifier in dict.fromkeys([*fresh, *local]):
+        a, b, c = old.get(identifier), local.get(identifier), fresh.get(identifier)
+        if b == a: chosen = c
+        elif c == a or b == c: chosen = b
+        elif a is None and c is None: chosen = b
+        else: raise ValueError('Recipe refresh conflicts with local edit: ' + identifier)
+        if chosen is not None: merged.append(copy.deepcopy(chosen))
+    result = copy.deepcopy(incoming); result['recipes'] = merged
+    result[SOURCE_BASE] = copy.deepcopy(incoming['recipes'])
     return result
 
 
@@ -136,6 +189,7 @@ def main():
         if name == 'remember': p.add_argument('--origin', choices=['explicit-user', 'confirmed-candidate'], required=True)
         else: p.add_argument('--signal', choices=['accept', 'reject', 'undo'], required=True)
     p = sub.add_parser('forget'); p.add_argument('--domain', required=True)
+    p = sub.add_parser('recommendations'); p.add_argument('setting', choices=['on', 'off'])
     p = sub.add_parser('compile'); p.add_argument('--base', type=Path, default=HOME / 'prompt-recipes.json')
     p.add_argument('--output', type=Path, default=HOME / 'prompt-recipes.json'); p.add_argument('--apply', action='store_true')
     args = ap.parse_args(); library = read(LIBRARY); state = load_preferences(args.state)
@@ -149,6 +203,7 @@ def main():
         return
     if args.command == 'remember': remember(state, library, args.domain, args.method, args.origin)
     elif args.command == 'forget': state['preferences'].pop(args.domain, None)
+    elif args.command == 'recommendations': state['recommendations_enabled'] = args.setting == 'on'
     else: feedback(state, library, args.domain, args.method, args.signal)
     atomic(args.state, state)
     print(json.dumps({'saved': str(args.state), 'command': args.command}, ensure_ascii=False))
