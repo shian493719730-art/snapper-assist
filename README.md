@@ -1,8 +1,8 @@
 <div align="center">
   <img src="assets/icon.svg" width="96" alt="Snapper Assist icon">
   <h1>Snapper Assist</h1>
-  <p><strong>A clearer prompt, right where you're writing.</strong></p>
-  <p>Select text → refine → review → replace or undo.</p>
+  <p><strong>Turn a rough thought into a clearer AI request.</strong></p>
+  <p>Select → refine → review → replace. Stay in the app where the idea started.</p>
   <p>
     <a href="https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.7.1-beta.1">Download the beta</a> ·
     <a href="docs/install.md">Install & AI setup</a> ·
@@ -12,9 +12,44 @@
   <p>macOS 26+ · Apple silicon · Native Swift/AppKit · MIT</p>
 </div>
 
-Snapper Assist turns selected text into a more actionable request without moving you into a separate editor. A small, non-activating Liquid Glass panel appears beside the selection. You decide whether to use AI, keep a local draft, apply the suggestion, or undo it.
+You know what you want to do. You haven't worked out how to explain the goal, the deliverable, or the constraints that matter.
 
-**Public beta:** the current download is ad-hoc signed and not notarized. AI mode requires a compatible existing Codex CLI installation and your own saved login. Please read the [requirements](docs/install.md) before testing.
+**Snapper Assist puts request editing beside your selected text.** Select a rough idea, click **AI 完善**, and review a fuller request. Apply it in the original input when you're ready, or undo the change. Short notes can become concrete tasks; longer drafts can be reorganized around what matters.
+
+**Requirements:** Apple-silicon Mac, macOS 26+, and your own compatible Codex CLI/login for AI. This public beta is not notarized. Check the [setup requirements](docs/install.md) before installing. The current interface uses Chinese labels.
+
+## From “something like this” to a useful starting point
+
+**Your draft:**
+
+> Help me revise chapter one. I only have two hours.
+
+**A fuller request could look like this:**
+
+> Plan a two-hour revision session for chapter one. Use the materials I provide; if I haven't provided them, say what you need rather than inventing chapter content. Suggest time for reviewing key concepts, self-testing, and revisiting mistakes. Explain what to do at each step and how to check understanding. Flag any uncertainty about the exam scope.
+
+<sub>This is an editorial example illustrating the intended transformation, not a recorded model output or a guarantee. Review, edit, or discard actual suggestions.</sub>
+
+The focus is on **goals, deliverables, steps, and checks**. The editing rules require preserving stated facts, language, and constraints, labeling inferred needs, and asking only about gaps that could change the result.
+
+## Why try it?
+
+- **Improve the request where you're already writing.** A native Liquid Glass panel sits beside the selection without taking focus from your app. No separate prompt editor to open first.
+- **Start with relevant methods.** Task-aware rules cover study, coding, design, research, writing, and general requests, drawing on attributed practices from Lauren Tan / pstack and other practitioners. [Explore the methods](docs/methods.md).
+- **AI drafts; you decide what changes.** Review the result before copying or replacing it. Undo an applied edit, or disable the toolbar in a particular app. Selection alone never starts a model request.
+
+Prompt editors and selection tools already exist. Snapper Assist focuses on the combination of **request development, selection-side interaction, and reviewable replace/undo** for people who think while they write.
+
+## Bring it a rough request
+
+| Start with | Clarify |
+| --- | --- |
+| “Help me revise this chapter” | Materials, a study sequence, and self-checks; unknown exam details stay unconfirmed. |
+| “Fix this bug” | Reproduction details, existing constraints, the intended fix, and verification steps. |
+| “This page feels cluttered” | The use case, information hierarchy, interaction priorities, and design checks. |
+| “Research this / rewrite this” | The research question and evidence requirements, or the audience, tone, and facts to preserve. |
+
+The helper edits the request you plan to send. It does not perform the selected task, modify a project, or automatically search GitHub.
 
 ![Workflow diagram: select text, refine and review, then replace or undo](assets/workflow.svg)
 
@@ -26,7 +61,7 @@ Snapper Assist turns selected text into a more actionable request without moving
 
 When your own [AI setup](docs/install.md#ai-mode) is ready, click **AI 完善** once to generate a suggestion. The app currently uses Chinese interface labels; English input receives an English-oriented preparation scaffold.
 
-## What it does
+## Stay in control
 
 | Feature | What you control |
 | --- | --- |
@@ -36,9 +71,9 @@ When your own [AI setup](docs/install.md#ai-mode) is ready, click **AI 完善** 
 | Review before writing | Inspect or copy the result. Nothing is replaced until you click Replace. |
 | Guarded replace and undo | Validate the source, selection and actual resulting text. Verified pastes prefer the source app's native Undo. |
 | Per-app controls | Disable the toolbar in an app, then restore it from the menu bar. |
-| Traceable methods | Curated, attributed collaboration rules rather than a promise of a universal “perfect prompt.” |
+| Adaptable methods | For relevant tasks, consider available evidence and useful existing implementations, challenge assumptions, and propose testable alternatives. |
 
-The editing policy preserves stated facts and constraints, marks inferred requirements as unconfirmed, and asks only for consequential gaps. For relevant problem-solving tasks it favors available evidence and useful existing implementations, while allowing alternative decompositions and testable new approaches. The helper edits the request; it does not execute the selected task or automatically search GitHub.
+Attribution does not imply endorsement by the cited practitioners. Model-quality, latency, and novelty improvements have not been independently measured.
 
 ## Privacy and account use
 
