@@ -2,6 +2,8 @@ import AppKit
 import ApplicationServices
 import FoundationModels
 
+let previewMode = Bundle.main.bundleIdentifier == "local.snapper.assist.preview" || CommandLine.arguments.contains("--preview")
+
 func ax(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
     var value: CFTypeRef?
     return AXUIElementCopyAttributeValue(element, name as CFString, &value) == .success ? value : nil
@@ -163,6 +165,8 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
     var lastFailure = "", lastStrategy = ""
     var exclusions = ApplicationExclusions()
     var excludedMenu: NSMenu!
+    var domainMenu: NSMenu!
+    var methodPreferenceNotice = "默认按任务建议；选择后保存在本机"
     let suggestionCache = SuggestionCache()
     let recipeStore = RecipeCatalogStore()
     var recipeCatalog: RecipeCatalog? { recipeStore.value }
@@ -216,7 +220,10 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         }
         excludedMenu = NSMenu(title: "已禁用的应用"); excludedMenu.delegate = self
         let excluded = NSMenuItem(title: "已禁用的应用", action: nil, keyEquivalent: ""); excluded.submenu = excludedMenu
-        menu.insertItem(excluded, at: 2); status.menu = menu
+        menu.insertItem(excluded, at: 2)
+        domainMenu = NSMenu(title: "领域方法"); domainMenu.delegate = self
+        let domains = NSMenuItem(title: "领域方法", action: nil, keyEquivalent: ""); domains.submenu = domainMenu
+        menu.insertItem(domains, at: 3); status.menu = menu
         panel = QuietPanel(contentRect: NSRect(x: 0, y: 0, width: 350, height: 52), styleMask: [.nonactivatingPanel, .borderless], backing: .buffered, defer: false)
         panel.level = .floating; panel.isFloatingPanel = true; panel.hidesOnDeactivate = false; panel.becomesKeyOnlyIfNeeded = true
         panel.hasShadow = true; panel.isOpaque = false; panel.backgroundColor = .clear; panel.isReleasedWhenClosed = false
@@ -225,13 +232,14 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         // Mouse-up re-arms a freshly selected identical range even when a short
         // deselection happened between timer samples. No keyboard monitoring.
         mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseUp) { [weak self] _ in
-            guard let self, !CommandLine.arguments.contains("--preview"), self.mode != .replacing, !self.panel.frame.contains(NSEvent.mouseLocation) else { return }
+            guard let self, !previewMode, self.mode != .replacing, !self.panel.frame.contains(NSEvent.mouseLocation) else { return }
             self.hide(suppress: false); self.lifecycle.newGesture()
         }
         lastTrust = AXIsProcessTrusted(); health()
-        if CommandLine.arguments.contains("--preview") {
-            snapshot = SelectionSnapshot(element: nil, pid: 0, text: "帮我整理复习计划。保留原来的目标与限制。", range: nil, anchor: NSEvent.mouseLocation)
+        if previewMode {
+            snapshot = SelectionSnapshot(element: nil, pid: 0, text: "学术讨论：什么算作知识？保留我的观点，不要发送消息。", range: nil, anchor: NSEvent.mouseLocation)
             result = preparePrompt(snapshot!.text, catalog: recipeCatalog).text; showSuggestion()
+            if Bundle.main.bundleIdentifier == "local.snapper.assist.preview" { showBar() }
             if CommandLine.arguments.contains("--preview-generating") {
                 mode = .generating; refinementProgress = RefinementProgress(startedAt: Date().addingTimeInterval(-12)); showSuggestion()
             }
@@ -325,7 +333,7 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
     func poll() {
         if mode == .generating { progressLabel?.stringValue = refinementProgress?.label() ?? "正在启动 AI…" }
         if AXIsProcessTrusted() != lastTrust { lastTrust = AXIsProcessTrusted(); health() }
-        if CommandLine.arguments.contains("--preview") { return }
+        if previewMode { return }
         guard !paused, mode != .replacing else { return }
         let selection = sourceSelection()
         if mode == .methods || mode == .about { return }
@@ -455,6 +463,8 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
             item.target = self; item.representedObject = [id, app.localizedName ?? id]; menu.addItem(item)
         }
         let methods = NSMenuItem(title: "来源与方法", action: #selector(showMethods), keyEquivalent: ""); methods.target = self; menu.addItem(methods)
+        let domains = NSMenuItem(title: "领域方法", action: nil, keyEquivalent: "")
+        let choices = NSMenu(title: "领域方法"); populateDomainMenu(choices); domains.submenu = choices; menu.addItem(domains)
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.maxY + 4), in: sender)
     }
     @objc func disableSourceApp(_ item: NSMenuItem) {
@@ -468,11 +478,52 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
     }
     func persistExclusions() { UserDefaults.standard.set(exclusions.applications, forKey: "snapper-excluded-apps") }
     func menuWillOpen(_ menu: NSMenu) {
+        if menu === domainMenu { populateDomainMenu(menu); return }
         guard menu === excludedMenu else { return }; menu.removeAllItems()
         for (id, name) in exclusions.applications.sorted(by: { $0.value < $1.value }) {
             let item = NSMenuItem(title: "恢复 \(name)", action: #selector(enableExcludedApp), keyEquivalent: ""); item.target = self; item.representedObject = id; menu.addItem(item)
         }
         if menu.items.isEmpty { let item = NSMenuItem(title: "没有禁用的应用", action: nil, keyEquivalent: ""); item.isEnabled = false; menu.addItem(item) }
+    }
+    func populateDomainMenu(_ menu: NSMenu) {
+        menu.removeAllItems(); menu.autoenablesItems = false
+        func note(_ text: String) { let item = NSMenuItem(title: text, action: nil, keyEquivalent: ""); item.isEnabled = false; menu.addItem(item) }
+        guard let choices = MethodChoiceCatalog.bundled else { note("领域方法数据不可用"); return }
+        let state: DomainPreferenceState
+        do { state = try DomainPreferenceState.load() } catch { note(error.localizedDescription); return }
+        note(methodPreferenceNotice); menu.addItem(.separator())
+        for domain in choices.domains {
+            let item = NSMenuItem(title: domain.title, action: nil, keyEquivalent: "")
+            let submenu = NSMenu(title: domain.title); submenu.autoenablesItems = false
+            let suggested = NSMenuItem(title: "跟随内置建议 · \(domain.suggested?.title ?? "默认")", action: #selector(chooseDomainMethod), keyEquivalent: "")
+            suggested.target = self; suggested.representedObject = [domain.id, ""]
+            suggested.state = state.selectedMethod(domain.id) == nil ? .on : .off
+            suggested.isEnabled = process == nil && mode != .applied && mode != .replacing
+            submenu.addItem(suggested); submenu.addItem(.separator())
+            for method in domain.methods {
+                let choice = NSMenuItem(title: method.title, action: #selector(chooseDomainMethod), keyEquivalent: "")
+                choice.target = self; choice.representedObject = [domain.id, method.id]
+                choice.state = state.selectedMethod(domain.id) == method.id ? .on : .off
+                choice.isEnabled = suggested.isEnabled; submenu.addItem(choice)
+            }
+            item.submenu = submenu; menu.addItem(item)
+        }
+    }
+    @objc func chooseDomainMethod(_ sender: NSMenuItem) {
+        guard process == nil, mode != .applied, mode != .replacing,
+              let values = sender.representedObject as? [String], values.count == 2,
+              let choices = MethodChoiceCatalog.bundled,
+              let domain = choices.domains.first(where: { $0.id == values[0] }),
+              let base = recipeCatalog else { return }
+        do {
+            var state = try DomainPreferenceState.load()
+            try state.choose(domain: domain, method: values[1].isEmpty ? nil : values[1])
+            _ = try state.applying(to: base, choices: choices)
+            try state.save(); recipeStore.reload()
+            methodPreferenceNotice = "已保存 · \(domain.title)；下次完善即生效"
+            if mode == .toolbar { showBar() }
+        } catch { methodPreferenceNotice = error.localizedDescription }
+        health()
     }
     @objc func copyResult() {
         guard mode == .suggestion || mode == .applied else { return }
@@ -552,11 +603,11 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         position(NSEvent.mouseLocation); panel.orderFrontRegardless()
     }
     @objc func showMethods() {
-        if mode != .methods { previousMode = mode }; mode = .methods; base(width: 440, height: 360)
-        header("来源与方法", subtitle: "方法库 \(knowledge()?.updated_on ?? "内置")  ·  每周检索")
-        body("保留目标、事实与约束。\n仅补充适用于当前任务的方法，跳过原文已有的要求。普通文字不追加协作流程。\n\n资料是一手实践与官方文档；本地检查证明的是功能与约束保留，不代表已证明模型输出更优。", height: 155)
+        if mode != .methods { previousMode = mode }; mode = .methods; base(width: 440, height: 450)
+        header("来源与方法", subtitle: "内置 14 类领域建议 · 17 种可选方法")
+        body("保留目标、事实与约束，只加入当前任务需要的方法。\n\n从菜单栏 S 或浮条 ⋯ 的“领域方法”选择个人偏好，也可恢复内置建议；不用脚本，不发送模型请求。\n\n每周研究由维护者进行，安装包携带方法快照。本地检查证明的是功能与约束保留，不代表模型输出更优。", height: 175)
         let rows = NSStackView(); rows.orientation = .vertical; rows.alignment = .leading; rows.spacing = 3
-        for (title, url) in [("Mollick · 交互与约束", "https://www.oneusefulthing.org/p/a-guide-to-prompting-ai-for-what"), ("Osmani · 小步工作流", "https://addyosmani.com/blog/ai-coding-workflow/"), ("OpenAI · 提示词与评估", "https://developers.openai.com/api/docs/guides/prompt-engineering")] {
+        for (title, url) in [("完整领域方法与出处", "https://github.com/shian493719730-art/snapper-assist/blob/main/docs/method-catalog.md"), ("Lauren Tan · pstack", "https://github.com/cursor/plugins/tree/main/pstack"), ("Mollick · 交互与约束", "https://www.oneusefulthing.org/p/a-guide-to-prompting-ai-for-what"), ("Osmani · 小步工作流", "https://addyosmani.com/blog/ai-coding-workflow/")] {
             let b = button(title + " ↗", #selector(openReference)); b.identifier = NSUserInterfaceItemIdentifier(url); b.isBordered = false; rows.addArrangedSubview(b)
         }
         stack.addArrangedSubview(rows)
@@ -634,7 +685,10 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
 
 @main struct SnapperEntry {
     static func main() {
-        if CommandLine.arguments.contains("--self-test") { runSelectionTests(); return }
+        if CommandLine.arguments.contains("--self-test") {
+            runSelectionTests(); if MethodChoiceCatalog.bundled != nil { runBundledMethodTests() }; return
+        }
+        if CommandLine.arguments.contains("--check-bundled-methods") { runBundledMethodTests(); return }
         if CommandLine.arguments.contains("--benchmark-preparation") {
             guard let catalog = RecipeCatalog.load() else { print("recipes unavailable"); exit(1) }
             let samples = ["期末复习", "修复替换问题，不要发送请求", "帮我设计一个清爽的界面", "write an email; do not invent facts"]

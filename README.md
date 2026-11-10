@@ -5,7 +5,7 @@
   <p>Select → refine → review → replace. Stay in the app where the idea started.</p>
   <p>Relevant methods for the task. Room for your preferred way of thinking.</p>
   <p>
-    <a href="https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.7.1-beta.1">Download the beta</a> ·
+    <a href="https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.8.0-beta.1">Download the beta</a> ·
     <a href="docs/install.md">Install & AI setup</a> ·
     <a href="docs/testing.md">Test & report a bug</a> ·
     <a href="README.zh-CN.md">简体中文</a>
@@ -48,7 +48,7 @@ Prompt editors and selection tools already exist. Snapper Assist focuses on the 
 
 ## Different work, different methods
 
-With the optional method data configured, the request can include guidance suited to the task:
+The **0.8 beta includes 14 domain recommendations and 17 methods**. No method download or configuration script is needed. Use **menu-bar S → 领域方法**, or **toolbar ⋯ → 领域方法**, to choose a method for one domain; choose **跟随内置建议** to reset it. The request can include guidance suited to the task:
 
 | Task | Example method | What it helps clarify |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ With the optional method data configured, the request can include guidance suite
 | Long-running Agent work | Context handoff, as an alternative | Goals, decisions, evidence locations and the next step without loading the whole knowledge library. |
 | Data and scientific figures | Evidence-led figures, as an alternative | Units, missing values, uncertainty and the intended output. |
 
-These are editing methods for the request you will send. Preferences are currently configured through the collaboration agent or source tools; there is no in-app preference panel. Domain matching uses local keywords, and the detailed preference construction has been checked in Chinese. [Setup and limits](docs/preferences.md).
+These are editing methods for the request you will send. Your choices stay on your Mac and take effect on the next refinement. Domain matching uses local keywords, and detailed preference construction has been checked in Chinese. [Setup and limits](docs/preferences.md).
 
 ## Bring it a rough request
 
@@ -75,7 +75,7 @@ The helper edits the request you plan to send. It does not perform the selected 
 
 ## Get started
 
-1. [Download the Apple-silicon beta ZIP](https://github.com/shian493719730-art/snapper-assist/releases/download/v0.7.1-beta.1/Snapper-Assist-0.7.1-macOS26-arm64-beta.zip), unzip it, and move **Snapper Assist.app** into Applications.
+1. [Download the Apple-silicon beta ZIP](https://github.com/shian493719730-art/snapper-assist/releases/download/v0.8.0-beta.1/Snapper-Assist-0.8.0-macOS26-arm64-beta.zip), unzip it, and move **Snapper Assist.app** into Applications.
 2. Enable that copy in **System Settings → Privacy & Security → Accessibility**.
 3. Select a short, non-sensitive test request in TextEdit. Choose **⋯ → 使用本地草稿** to try a local draft without sending a model request.
 
@@ -87,7 +87,7 @@ When your own [AI setup](docs/install.md#ai-mode) is ready, click **AI 完善** 
 | --- | --- |
 | Selection-side assistance | A compact panel beside your text; the source app keeps focus. |
 | One-click AI refinement | Only your deliberate click starts generation. A spinner and elapsed time show that the request is still processing. |
-| Local draft fallback | Six task families: study, coding, design, research, writing and general requests. No model request needed. |
+| Bundled methods and local fallback | Fourteen domain recommendations, seventeen selectable methods and a general fallback. No model request needed for a local draft or a preference change. |
 | Review before writing | Inspect or copy the result. Nothing is replaced until you click Replace. |
 | Guarded replace and undo | Validate the source, selection and actual resulting text. Verified pastes prefer the source app's native Undo. |
 | Per-app controls | Disable the toolbar in an app, then restore it from the menu bar. |
@@ -134,6 +134,6 @@ The local knowledge snapshot includes ideas attributed to Lauren Tan / pstack, E
 
 The maintainer's configured weekly workflow checks original practitioners, discovers new sources, checks repository changes and migrations, and rotates through concrete examples. Useful findings are reviewed and checked before entering the method data. Personal choices remain separate, and methods can be revised or replaced when another approach fits better.
 
-**For beta users:** the download contains a build-time snapshot. The maintainer's weekly automation is not bundled or automatically installed on your Mac. Updated source and optional method-data setup are available in this repository; the existing ZIP is not silently updated. No third-party Skill is automatically installed or executed, and model-quality gains still require actual comparison.
+**For beta users:** the 0.8 download includes the current method snapshot and a native preference menu. The maintainer's weekly automation is not bundled or automatically installed on your Mac; future snapshots arrive through a new download or an optional local data update. No third-party Skill is automatically installed or executed, and model-quality gains still require actual comparison.
 
 The project is an independent implementation. [MIT license](LICENSE).

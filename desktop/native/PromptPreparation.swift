@@ -4,25 +4,35 @@ import CryptoKit
 struct PromptRecipe: Decodable {
     let id, title, intent: String
     let keywords, deliverables, checks, questions, source_ids: [String]
+    var isValid: Bool {
+        !id.isEmpty && id.count <= 64 && !title.isEmpty && !intent.isEmpty &&
+        keywords.count <= 30 && deliverables.count <= 5 && questions.count <= 2 && checks.count <= 5 && source_ids.count <= 30 &&
+        (keywords + deliverables + checks + questions + source_ids).allSatisfy { !$0.isEmpty && $0.count <= 600 }
+    }
 }
 struct RecipeCatalog: Decodable {
     let schema_version: Int
     let revision: String
     let recipes: [PromptRecipe]
-    static var userURL: URL { FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex/agent-learning-loop/prompt-recipes.json") }
+    static var userURL: URL {
+        if Bundle.main.bundleIdentifier == "local.snapper.assist.preview" { return DomainPreferenceState.url.deletingLastPathComponent().appendingPathComponent("prompt-recipes.json") }
+        return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex/agent-learning-loop/prompt-recipes.json")
+    }
     static func decode(_ data: Data) -> RecipeCatalog? {
         guard let catalog = try? JSONDecoder().decode(RecipeCatalog.self, from: data), catalog.schema_version == 1,
               !catalog.recipes.isEmpty, catalog.recipes.count <= 20,
               Set(catalog.recipes.map(\.id)).count == catalog.recipes.count,
               catalog.recipes.contains(where: { $0.id == "general" }),
-              catalog.recipes.allSatisfy({ !$0.id.isEmpty && $0.id.count <= 64 && !$0.title.isEmpty && !$0.intent.isEmpty &&
-                  $0.keywords.count <= 30 && $0.deliverables.count <= 5 && $0.questions.count <= 2 && $0.checks.count <= 5 &&
-                  ($0.deliverables + $0.checks + $0.questions).allSatisfy({ !$0.isEmpty && $0.count <= 600 }) }) else { return nil }
+              catalog.recipes.allSatisfy(\.isValid) else { return nil }
         return catalog
     }
     static func load() -> RecipeCatalog? {
         for url in [userURL, Bundle.main.url(forResource: "prompt-recipes", withExtension: "json")].compactMap({ $0 }) {
-            if let data = try? Data(contentsOf: url), let catalog = decode(data) { return catalog }
+            if let data = try? Data(contentsOf: url), let catalog = decode(data) {
+                if let choices = MethodChoiceCatalog.bundled, let state = try? DomainPreferenceState.load(),
+                   let personalized = try? state.applying(to: catalog, choices: choices) { return personalized }
+                return catalog
+            }
         }
         return nil
     }
@@ -30,7 +40,9 @@ struct RecipeCatalog: Decodable {
         let lower = text.lowercased()
         var best: PromptRecipe?; var score = 0
         for recipe in recipes {
-            let current = recipe.keywords.filter { lower.contains($0.lowercased()) }.count
+            let prefix = lower.trimmingCharacters(in: .whitespacesAndNewlines)
+            let explicit = recipe.keywords.contains { prefix.hasPrefix($0.lowercased() + "：") || prefix.hasPrefix($0.lowercased() + ":") }
+            let current = recipe.keywords.filter { lower.contains($0.lowercased()) }.count + (explicit ? 100 : 0)
             if current > score { best = recipe; score = current }
         }
         return best ?? recipes.first { $0.id == "general" }
@@ -38,15 +50,19 @@ struct RecipeCatalog: Decodable {
 }
 final class RecipeCatalogStore {
     private var cached = RecipeCatalog.load()
-    private var loadedAt: Date?
+    private var loadedAt: [Date?] = []
     var value: RecipeCatalog? {
-        let changed = (try? FileManager.default.attributesOfItem(atPath: RecipeCatalog.userURL.path)[.modificationDate]) as? Date
+        let changed = [RecipeCatalog.userURL, DomainPreferenceState.url].map { (try? FileManager.default.attributesOfItem(atPath: $0.path)[.modificationDate]) as? Date }
         if changed != loadedAt {
             loadedAt = changed
-            if let data = try? Data(contentsOf: RecipeCatalog.userURL), let fresh = RecipeCatalog.decode(data) { cached = fresh }
+            if FileManager.default.fileExists(atPath: RecipeCatalog.userURL.path),
+               (try? Data(contentsOf: RecipeCatalog.userURL)).flatMap(RecipeCatalog.decode) == nil { return cached }
+            if FileManager.default.fileExists(atPath: DomainPreferenceState.url.path), (try? DomainPreferenceState.load()) == nil { return cached }
+            if let fresh = RecipeCatalog.load() { cached = fresh }
         }
         return cached
     }
+    func reload() { if let fresh = RecipeCatalog.load() { cached = fresh }; loadedAt = [] }
 }
 struct PreparedPrompt {
     let original, text, recipeID, intent, revision: String

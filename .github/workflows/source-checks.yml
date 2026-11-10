@@ -13,3 +13,4 @@ jobs:
       - run: python3 scripts/check_source.py
       - run: python3 scripts/test_preferences.py
       - run: python3 scripts/test_source_index.py
+      - run: python3 scripts/test_package_methods.py

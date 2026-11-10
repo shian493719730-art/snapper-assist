@@ -12,7 +12,7 @@ Optional local state:
 
 - `~/.codex/agent-learning-loop/selection-status.json`: version, permissions, counts, strategy, restoration equality/length deltas and source-field dimensions. No selected text or clipboard contents.
 - `~/.codex/agent-learning-loop/knowledge.json` and `prompt-recipes.json`, if present: optional local method overrides. Otherwise packaged snapshots are used.
-- `~/.codex/agent-learning-loop/domain-preferences.json`, when optional domain preferences are configured: method choices and provenance, plus optional manual feedback counts; no selected text or chat history. Compiled recipes include the applicable method instructions. See [domain preferences](docs/preferences.md).
+- `~/.codex/agent-learning-loop/domain-preferences.json`, when domain preferences are configured: method choices and provenance, per-domain “follow suggestion” flags, plus optional manual feedback counts; no selected text or chat history. The 0.8 app menu saves choices here without a model request. Existing feedback and unrelated profile fields are preserved. See [domain preferences](docs/preferences.md).
 - App preferences under `local.snapper.assist`: pause and per-app exclusions.
 
 The release contains no developer credential, chat, private project, scheduled task or analytics backend. Weekly research automation is not installed by the app. Folder scanning and Full Disk Access are not required for the selected-text workflow. Report unexpected requests without posting private data.

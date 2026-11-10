@@ -2,9 +2,10 @@
 
 需要 **Apple 芯片 Mac（M1 或更新）及 macOS 26+**。当前不支持 Windows、Intel Mac。
 
-1. 从 [Release](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.7.1-beta.1) 下载 ZIP 并解压，将 Snapper Assist.app 移到“应用程序”或自己的 Applications 文件夹。
+1. 从 [Release](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.8.0-beta.1) 下载 ZIP 并解压，将 Snapper Assist.app 移到“应用程序”或自己的 Applications 文件夹。
 2. 打开应用，在“系统设置 → 隐私与安全性 → 辅助功能”中添加并开启这份应用，必要时退出后重新打开。菜单栏 S 提供暂停、恢复与退出。
 3. 先在文本编辑中使用 [测试文字](testing.zh-CN.md)，选中后从“⋯ → 使用本地草稿”开始，不会调用模型。
+4. 0.8 已默认加载 14 类领域建议和 17 种可选方法，无需下载配方、安装 Python 或改配置。要选择个人习惯，打开“菜单栏 S → 领域方法”或“浮条 ⋯ → 领域方法”；如“学术讨论 → 苏格拉底式提问”。选“跟随内置建议”恢复默认，下次完善即生效。
 
 安装包为 ad-hoc 签名，尚未做 Developer ID 签名和 Apple 公证，新电脑首次安装未实测。macOS 可能阻止首次打开；请记录准确提示，不要为内测关闭全局安全保护。[Apple 官方说明](https://support.apple.com/zh-cn/102445)。
 

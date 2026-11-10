@@ -2,7 +2,11 @@
 
 Snapper can use different editing methods for different kinds of request. The expandable [method catalog](method-catalog.md) covers 14 seed directions with source-backed suggestions. A preference for Socratic dialogue in academic discussion does not imply that study plans, email drafts or bug fixes should become a question-and-answer exercise.
 
-This optional data layer works with the installed 0.7.1 app's live recipe loader; rebuilding, re-signing, restarting and renewed Accessibility permission are not required. It is currently managed by the collaboration agent or the commands below, **not a new in-app settings screen**. Automatic feedback collection from Replace/Undo buttons is not connected.
+**The 0.8 beta includes the methods and an in-app menu.** Fourteen domain recommendations are enabled in the package. Open **menu-bar S → 领域方法**, or **selection toolbar ⋯ → 领域方法**, choose a domain and a method. For academic discussion, choose “苏格拉底式提问”. Choose “跟随内置建议” to remove that personal choice and use the default again. Selections are saved locally and apply to the next refinement; no script, Python installation, model request or restart is needed.
+
+The menu is unavailable while generation, replacement or an applied edit is active, so changing methods does not interrupt a request or disturb an Undo record. Existing local recipe overrides and personal state remain local. The developer's own choices are not bundled. Automatic feedback collection from Replace/Undo is not connected.
+
+The earlier 0.7.1 loader can use compiled method data through the advanced source tools below; its binary does not include this menu. A newly built 0.8 app may require renewing Accessibility permission when replacing an earlier ad-hoc build.
 
 ## What is remembered
 
@@ -17,7 +21,7 @@ No app history or private folders are scanned. Referencing a method or skill is 
 
 ## Optional setup
 
-Run from a source checkout. These example commands are an explicit choice, not a universal default:
+For advanced automation, run from a source checkout. Most 0.8 users can use the menu above. These example commands are an explicit choice, not a universal default:
 
 ```sh
 python3 scripts/preferences.py remember --domain academic-dialogue --method socratic-dialogue --origin explicit-user
@@ -51,12 +55,12 @@ The Socratic profile helps reconstruct a claim, clarify concepts, examine premis
 
 Sources: [Plato's Meno, translated by Jowett](https://classics.mit.edu/Plato/meno.html), for dialogue about definitions and examples; [University of Antwerp teaching guidance](https://www.uantwerpen.be/en/centres/centre-expertise-higher-education/didactic-information/teaching-tips/activating-students/socratic-method/), for clear questions and room to answer. This is a modern adaptation, not a claim that every practice here was prescribed by Socrates or improves every task.
 
-Local domain selection currently uses the existing keyword router. Ambiguous or unrecognized requests can fall back to the general recipe. The 0.7.1 native English-only local scaffold remains generic; **this iteration validates Chinese preference instructions, not full English preference behavior**. There is no background model call to infer a domain. New AI outputs, conversational quality and user preference gains still require deliberate user testing.
+Local domain selection uses keywords, with an explicit domain label followed by a colon taking priority. Ambiguous or unrecognized requests can fall back to the general recipe. The English-only local scaffold remains generic; **detailed preference construction is validated in Chinese, not full English preference behavior**. There is no background model call to infer a domain. New AI outputs, conversational quality and user preference gains still require deliberate user testing.
 
 ## 中文说明
 
-目前可按目录中的领域保存明确选择；“学术讨论”和“观点推敲”可分别采用苏格拉底式提问或论证梳理。只保存明确表达或确认的选择；重复接受只能形成候选，撤回一次不代表长期不喜欢。其他领域可启用带“建议”标记的来源方法，但不会因此认定用户喜欢它。
+0.8 安装包默认附带 14 类建议、17 种可选方法，不需要另外下载方法数据。通过“菜单栏 S → 领域方法”或“浮条 ⋯ → 领域方法”直接选用；“学术讨论”和“观点推敲”可分别选择苏格拉底式对话或论证梳理。选“跟随内置建议”可恢复默认。没有选择时只显示建议，不冒充个人喜好。生成、替换或待撤回时不能修改偏好，避免打断当前操作。
 
 苏格拉底式提问以“准确理解 → 澄清概念/前提/证据 → 反例与边界 → 根据回答继续”为方向，每次只问一个关键问题。它是后续对话的交互要求，助手本身仍只完善选文。若本次要求“直接给结论”“不要提问”或“不用苏格拉底法”，以本次要求为先。
 
-本轮通过既有热加载接口更新本机方法数据，没有重建应用或改变授权。匹配是关键词初筛，中文提示词构建已做本地检查；反馈按钮、跨软件自动学习、全量聊天分析、任意 Skill 自动执行均未实现，也不会声称已经实现。收费模型的实际输出继续由用户点击验收。
+偏好只在自己的电脑保存；不会带上开发者的个人选择。改变菜单选项不调用模型，下次完善即使用新选择。中文构建已有本地检查；跨软件自动学习、全量聊天分析和任意 Skill 自动执行未实现。收费模型的实际输出继续由使用者点击验收。

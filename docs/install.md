@@ -12,10 +12,11 @@
 
 The ZIP is ad-hoc signed, not Developer-ID signed or notarized. Fresh-machine installation has not yet been verified. macOS may block the first launch. Record the exact message if blocked; do not disable system-wide security controls for this beta. [Apple's guidance](https://support.apple.com/102445).
 
-1. Download the ZIP from the [release](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.7.1-beta.1).
+1. Download the ZIP from the [release](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.8.0-beta.1).
 2. Unzip and move **Snapper Assist.app** to Applications or your own Applications folder before granting permission.
 3. Open the app. Enable this copy in **System Settings → Privacy & Security → Accessibility**. Restart the helper if needed. The menu-bar S provides pause, restore and quit.
 4. Try **⋯ → 使用本地草稿** first with the [public fixture](testing.md). Review, Replace, then click the helper's Undo button.
+5. The 0.8 package already includes 14 domain recommendations and 17 methods. No Python or configuration scripts are needed. Choose a personal method in **menu-bar S → 领域方法** or **toolbar ⋯ → 领域方法**; for example **学术讨论 → 苏格拉底式提问**. Choose **跟随内置建议** to reset it. The next refinement uses the saved choice.
 
 ## AI mode
 
