@@ -107,7 +107,7 @@ See [Privacy](PRIVACY.md) for temporary files and data boundaries.
 
 ## Current validation and limits
 
-On the development Mac, the extracted beta passed **66 native regression checks** and strict signature verification. A user-assisted chat-input round confirmed first replacement without extra blank space, and native Undo restoring the exact original text and selection. AI generation and visible waiting status were also user-tested.
+On the development Mac, the extracted 0.8 beta passed **66 native regression checks, 49 bundled/fresh-profile method checks**, and strict signature verification. The native method menu and its effect on a local draft were exercised in an isolated preview. Earlier user-assisted 0.7.1 testing confirmed replacement without extra blank space, exact Undo restoration, AI generation and visible waiting status; those observations are prior-version evidence, not a fresh 0.8 cross-app acceptance run.
 
 These results do **not** establish a fresh installation on every Mac or universal editor compatibility. Three-cycle stability, duplicate/stale/rapid selection cases, and complete TextEdit/Chrome interaction coverage remain open beta checks. Read-only, protected or inaccessible fields may only support copying. Windows and Intel Mac binaries are not provided. Model-quality, latency and novelty improvements have not been independently measured.
 
