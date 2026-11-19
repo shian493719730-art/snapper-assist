@@ -1,4 +1,4 @@
-> **0.9.1 beta is available:** clearer Accessibility setup and Skill-aware refinement from your original text. [Download](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.9.1-beta.1) · [Verification and limits](docs/releases/v0.9.1-candidate.md).
+> **0.10 beta is available:** connect shared AI with a private invitation, without installing Codex or configuring an API. **Model billing is OFF.** [Download](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.10.0-beta.1) · [Invitation setup and limits](docs/shared-ai.zh-CN.md).
 
 <div align="center">
   <img src="assets/icon.svg" width="96" alt="Snapper Assist icon">
@@ -7,7 +7,7 @@
   <p>Select → refine → review → replace. Stay in the app where the idea started.</p>
   <p>Relevant methods for the task. Room for your preferred way of thinking.</p>
   <p>
-    <a href="https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.9.1-beta.1">Download the beta</a> ·
+    <a href="https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.10.0-beta.1">Download the beta</a> ·
     <a href="docs/install.md">Install & AI setup</a> ·
     <a href="docs/testing.md">Test & report a bug</a> ·
     <a href="README.zh-CN.md">简体中文</a>
@@ -23,7 +23,7 @@ You know what you want to do. You haven't worked out how to explain the goal, th
 
 **Snapper Assist puts request editing beside your selected text.** Select a rough idea, click **AI 完善**, and review a fuller request. Apply it in the original input when you're ready, or undo the change. Short notes can become concrete tasks; longer drafts can be reorganized around what matters.
 
-**Requirements:** Apple-silicon Mac and macOS 26+. The 0.10 shared-AI candidate uses a private invitation without a local Codex installation; real model billing is currently disabled. Existing 0.9.1 public downloads still use local Codex. This public beta is not notarized. Check the [setup requirements](docs/install.md) before installing. The current interface uses Chinese labels.
+**Requirements:** Apple-silicon Mac and macOS 26+. Shared AI uses a private invitation without a local Codex installation; real model billing is currently disabled. This public beta is not notarized. Check the [setup requirements](docs/install.md) before installing. The current interface uses Chinese labels.
 
 ## From “something like this” to a useful starting point
 
@@ -50,7 +50,7 @@ Prompt editors and selection tools already exist. Snapper Assist focuses on the 
 
 ## Different work, different methods
 
-The **0.9.1 beta includes 14 domain recommendations and 17 methods**. No method download or configuration script is needed. Use **menu-bar S → 领域方法**, or **toolbar ⋯ → 领域方法**, to choose a method for one domain; choose **跟随内置建议** to reset it. The request can include guidance suited to the task:
+The **0.10 beta includes 14 domain recommendations and 17 methods**. No method download or configuration script is needed. Use **menu-bar S → 领域方法**, or **toolbar ⋯ → 领域方法**, to choose a method for one domain; choose **跟随内置建议** to reset it. The request can include guidance suited to the task:
 
 | Task | Example method | What it helps clarify |
 | --- | --- | --- |
@@ -77,18 +77,18 @@ The helper edits the request you plan to send. It does not perform the selected 
 
 ## Get started
 
-1. [Download the Apple-silicon beta ZIP](https://github.com/shian493719730-art/snapper-assist/releases/download/v0.9.1-beta.1/Snapper-Assist-0.9.1-macOS26-arm64-beta.zip), unzip it, and move **Snapper Assist.app** into Applications.
+1. [Download the Apple-silicon beta ZIP](https://github.com/shian493719730-art/snapper-assist/releases/download/v0.10.0-beta.1/Snapper-Assist-0.10.0-macOS26-arm64-beta.zip), unzip it, and move **Snapper Assist.app** into Applications.
 2. Enable that copy in **System Settings → Privacy & Security → Accessibility**.
 3. Select a short, non-sensitive test request in TextEdit. Choose **⋯ → 使用本地草稿** to try a local draft without sending a model request.
 
-When your own [AI setup](docs/install.md#ai-mode) is ready, click **AI 完善** once to generate a suggestion. The app currently uses Chinese interface labels; English input receives an English-oriented preparation scaffold.
+Open **共享 AI 与邀请码…** from the authorization guide or menu-bar S and connect a private invitation from the maintainer. **Shared billing is currently OFF**, so use local drafts for now; no Codex or API configuration is needed for shared mode. [Setup and current scope](docs/shared-ai.zh-CN.md). The interface currently uses Chinese labels.
 
 ## Stay in control
 
 | Feature | What you control |
 | --- | --- |
 | Selection-side assistance | A compact panel beside your text; the source app keeps focus. |
-| One-click AI refinement | Only your deliberate click starts generation. A spinner and elapsed time show that the request is still processing. |
+| One-click AI refinement | Your click checks access and allowance first. Available generation shows progress; disabled billing is reported explicitly. |
 | Bundled methods and local fallback | Fourteen domain recommendations, seventeen selectable methods and a general fallback. No model request needed for a local draft or a preference change. |
 | Review before writing | Inspect or copy the result. Nothing is replaced until you click Replace. |
 | Guarded replace and undo | Validate the source, selection and actual resulting text. Verified pastes prefer the source app's native Undo. |
@@ -100,18 +100,18 @@ Attribution does not imply endorsement by the cited practitioners. Model-quality
 ## Privacy and account use
 
 - Selecting text alone does not send it to a model.
-- The selected text and relevant editing context are sent through your existing Codex account only when you click AI refinement. That uses your account's available usage.
+- When shared generation is enabled, clicking AI refinement sends selected text and confirmed method preferences through the maintainer's relay to TideVerse. Current shared billing is OFF; selecting text alone never starts generation. Explicit local-Codex mode instead uses your own local login.
 - The current input's full text is read locally to verify a targeted edit. Undo state and the response cache stay in memory.
-- The app explicitly selects relevant bundled/local Skill instructions after you click. Each CLI call uses a temporary profile linked to your own saved login; automatic project/skill/plugin discovery and unrelated tools stay disabled.
+- Shared mode uses public server-side method cards and does not scan a friend's local Skill files. Explicit local-Codex mode retains selected local Skills and an isolated CLI profile. Provider keys and invitation codes are excluded from the public package.
 - No developer account, chat history, personal project, research schedule or analytics service is bundled.
 
 See [Privacy](PRIVACY.md) for temporary files and data boundaries.
 
 ## Current validation and limits
 
-The anonymously downloaded 0.9.1 beta matches the installed binary and passed **74 native regression checks, 52 bundled/fresh-profile method checks**, plus strict signature verification. All four assets were downloaded without account cookies or authorization headers. The new permission guide and correct settings navigation were exercised on the development Mac; re-adding the formal app restored actual Accessibility trust. Preferences and method files matched their pre-update hashes.
+The 0.10 build passed **77 native regression checks, 52 bundled/fresh-profile method checks and 20 shared-service tests**. Shared-service tests use actual SQLite and mock generation. The native invitation window connected to the hosted service, Accessibility trust was restored, and personal data hashes and prior pause/exclusion settings were preserved.
 
-There were also 21 preference tests with a native data probe, 12 source-index and 4 package tests. Earlier replace/Undo and AI demonstrations are previous-version evidence; this update did not issue paid generation requests or establish a fresh cross-app acceptance pass.
+The hosted service and local machine both read the real TideVerse model catalog successfully, with the configured model available. Invitations activate, report disabled billing, and the generation endpoint rejects requests while billing is off. No paid model generation was sent. Older replacement/Undo demonstrations remain earlier-version evidence. [Release verification](docs/releases/v0.10.0-beta.1.md).
 
 These results do **not** establish a fresh installation on every Mac or universal editor compatibility. Three-cycle stability, duplicate/stale/rapid selection cases, and complete TextEdit/Chrome interaction coverage remain open beta checks. Read-only, protected or inaccessible fields may only support copying. Windows and Intel Mac binaries are not provided. Model-quality, latency and novelty improvements have not been independently measured.
 
@@ -138,7 +138,7 @@ The local knowledge snapshot includes ideas attributed to Lauren Tan / pstack, E
 
 The maintainer's configured weekly workflow checks original practitioners, discovers new sources, checks repository changes and migrations, and rotates through concrete examples. Useful findings are reviewed and checked before entering the method data. Personal choices remain separate, and methods can be revised or replaced when another approach fits better.
 
-**For beta users:** the 0.9.1 download includes the current method snapshot and a native preference menu. The maintainer's weekly automation is not bundled or automatically installed on your Mac; future snapshots arrive through a new download or an optional local data update. No third-party Skill is automatically installed or executed, and model-quality gains still require actual comparison.
+**For beta users:** the 0.10 download includes the current method snapshot and a native preference menu. The maintainer's weekly automation is not bundled or automatically installed on your Mac; future snapshots arrive through a new download or an optional local data update. No third-party Skill is automatically installed or executed, and model-quality gains still require actual comparison.
 
 The project is an independent implementation. [MIT license](LICENSE).
 
