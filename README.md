@@ -1,4 +1,4 @@
-> Local 0.9.1: clearer, checked Accessibility guidance and Skill-aware refinement from the original text. The new beta asset is pending publication; public downloads below still target 0.8. [Status and verification](docs/releases/v0.9.1-candidate.md).
+> **0.9.1 beta is available:** clearer Accessibility setup and Skill-aware refinement from your original text. [Download](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.9.1-beta.1) · [Verification and limits](docs/releases/v0.9.1-candidate.md).
 
 <div align="center">
   <img src="assets/icon.svg" width="96" alt="Snapper Assist icon">
@@ -7,7 +7,7 @@
   <p>Select → refine → review → replace. Stay in the app where the idea started.</p>
   <p>Relevant methods for the task. Room for your preferred way of thinking.</p>
   <p>
-    <a href="https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.8.0-beta.1">Download the beta</a> ·
+    <a href="https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.9.1-beta.1">Download the beta</a> ·
     <a href="docs/install.md">Install & AI setup</a> ·
     <a href="docs/testing.md">Test & report a bug</a> ·
     <a href="README.zh-CN.md">简体中文</a>
@@ -50,7 +50,7 @@ Prompt editors and selection tools already exist. Snapper Assist focuses on the 
 
 ## Different work, different methods
 
-The **0.8 beta includes 14 domain recommendations and 17 methods**. No method download or configuration script is needed. Use **menu-bar S → 领域方法**, or **toolbar ⋯ → 领域方法**, to choose a method for one domain; choose **跟随内置建议** to reset it. The request can include guidance suited to the task:
+The **0.9.1 beta includes 14 domain recommendations and 17 methods**. No method download or configuration script is needed. Use **menu-bar S → 领域方法**, or **toolbar ⋯ → 领域方法**, to choose a method for one domain; choose **跟随内置建议** to reset it. The request can include guidance suited to the task:
 
 | Task | Example method | What it helps clarify |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ The **0.8 beta includes 14 domain recommendations and 17 methods**. No method do
 | Long-running Agent work | Context handoff, as an alternative | Goals, decisions, evidence locations and the next step without loading the whole knowledge library. |
 | Data and scientific figures | Evidence-led figures, as an alternative | Units, missing values, uncertainty and the intended output. |
 
-These are editing methods for the request you will send. Your choices stay on your Mac and take effect on the next refinement. Domain matching uses local keywords, and detailed preference construction has been checked in Chinese. [Setup and limits](docs/preferences.md).
+These are editing methods for the request you will send. Your choices stay on your Mac and take effect on the next refinement. Local draft labels use keyword matching. AI refinement instead selects relevant Skill instructions by meaning, then reads the selected bodies to develop the original request. It normally uses two model calls after you click; your saved choices are guidance, not a fixed output template. [Setup and limits](docs/preferences.md).
 
 ## Bring it a rough request
 
@@ -77,7 +77,7 @@ The helper edits the request you plan to send. It does not perform the selected 
 
 ## Get started
 
-1. [Download the Apple-silicon beta ZIP](https://github.com/shian493719730-art/snapper-assist/releases/download/v0.8.0-beta.1/Snapper-Assist-0.8.0-macOS26-arm64-beta.zip), unzip it, and move **Snapper Assist.app** into Applications.
+1. [Download the Apple-silicon beta ZIP](https://github.com/shian493719730-art/snapper-assist/releases/download/v0.9.1-beta.1/Snapper-Assist-0.9.1-macOS26-arm64-beta.zip), unzip it, and move **Snapper Assist.app** into Applications.
 2. Enable that copy in **System Settings → Privacy & Security → Accessibility**.
 3. Select a short, non-sensitive test request in TextEdit. Choose **⋯ → 使用本地草稿** to try a local draft without sending a model request.
 
@@ -109,7 +109,9 @@ See [Privacy](PRIVACY.md) for temporary files and data boundaries.
 
 ## Current validation and limits
 
-On the development Mac, the extracted 0.8 beta passed **66 native regression checks, 49 bundled/fresh-profile method checks**, and strict signature verification. The native method menu and its effect on a local draft were exercised in an isolated preview. Earlier user-assisted 0.7.1 testing confirmed replacement without extra blank space, exact Undo restoration, AI generation and visible waiting status; those observations are prior-version evidence, not a fresh 0.8 cross-app acceptance run.
+The anonymously downloaded 0.9.1 beta matches the installed binary and passed **74 native regression checks, 52 bundled/fresh-profile method checks**, plus strict signature verification. All four assets were downloaded without account cookies or authorization headers. The new permission guide and correct settings navigation were exercised on the development Mac; re-adding the formal app restored actual Accessibility trust. Preferences and method files matched their pre-update hashes.
+
+There were also 21 preference tests with a native data probe, 12 source-index and 4 package tests. Earlier replace/Undo and AI demonstrations are previous-version evidence; this update did not issue paid generation requests or establish a fresh cross-app acceptance pass.
 
 These results do **not** establish a fresh installation on every Mac or universal editor compatibility. Three-cycle stability, duplicate/stale/rapid selection cases, and complete TextEdit/Chrome interaction coverage remain open beta checks. Read-only, protected or inaccessible fields may only support copying. Windows and Intel Mac binaries are not provided. Model-quality, latency and novelty improvements have not been independently measured.
 
@@ -136,6 +138,6 @@ The local knowledge snapshot includes ideas attributed to Lauren Tan / pstack, E
 
 The maintainer's configured weekly workflow checks original practitioners, discovers new sources, checks repository changes and migrations, and rotates through concrete examples. Useful findings are reviewed and checked before entering the method data. Personal choices remain separate, and methods can be revised or replaced when another approach fits better.
 
-**For beta users:** the 0.8 download includes the current method snapshot and a native preference menu. The maintainer's weekly automation is not bundled or automatically installed on your Mac; future snapshots arrive through a new download or an optional local data update. No third-party Skill is automatically installed or executed, and model-quality gains still require actual comparison.
+**For beta users:** the 0.9.1 download includes the current method snapshot and a native preference menu. The maintainer's weekly automation is not bundled or automatically installed on your Mac; future snapshots arrive through a new download or an optional local data update. No third-party Skill is automatically installed or executed, and model-quality gains still require actual comparison.
 
 The project is an independent implementation. [MIT license](LICENSE).
