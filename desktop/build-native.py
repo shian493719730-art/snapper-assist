@@ -13,7 +13,7 @@ parser.add_argument('--preview-bundle',action='store_true',help='Use an isolated
 args=parser.parse_args()
 cache=root/'.runtime/native-build'/('preview' if args.preview_bundle else 'release');cache.mkdir(parents=True,exist_ok=True)
 binary=cache/'SnapperAssist'
-subprocess.run(['swiftc','-O','-framework','AppKit','-framework','ApplicationServices','-framework','FoundationModels',*[str(root/'native'/name) for name in ['SelectionCore.swift','PromptPreparation.swift','DomainMethods.swift','SkillRouting.swift','AccessibilityHelp.swift','DomainMethodTests.swift','RefinementLaunch.swift','SelectionTests.swift','SelectionAssistant.swift']],'-o',str(binary)],check=True)
+subprocess.run(['swiftc','-O','-framework','AppKit','-framework','ApplicationServices','-framework','FoundationModels',*[str(root/'native'/name) for name in ['SelectionCore.swift','PromptPreparation.swift','DomainMethods.swift','SkillRouting.swift','AccessibilityHelp.swift','SharedAI.swift','DomainMethodTests.swift','RefinementLaunch.swift','SelectionTests.swift','SelectionAssistant.swift']],'-o',str(binary)],check=True)
 subprocess.run([str(binary),'--self-test'],check=True)
 subprocess.run(['swift',str(root/'native/render-icons.swift'),str(cache/'icons')],check=True)
 icon=cache/'SnapperAssist.icns'
@@ -28,7 +28,7 @@ mac=target/'Contents/MacOS';resources=target/'Contents/Resources';mac.mkdir(pare
 shutil.copy2(binary,mac/'SnapperAssist');shutil.copy2(icon,resources/'SnapperAssist.icns');shutil.copy2(root/'knowledge.json',resources/'knowledge.json')
 shutil.copy2(root.parent/'skills/refinement-fallback.md',resources/'refinement-fallback.md')
 subprocess.run(['python3',str(root.parent/'scripts/package_methods.py'),'--output',str(resources)],check=True)
-info={'CFBundleName':'Snapper Assist','CFBundleDisplayName':'Snapper Assist','CFBundleIdentifier':'local.snapper.assist','CFBundleExecutable':'SnapperAssist','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.9.1','CFBundleVersion':'13','CFBundleIconFile':'SnapperAssist.icns','LSMinimumSystemVersion':'26.0','LSUIElement':True,'NSHighResolutionCapable':True,'NSPrincipalClass':'NSApplication','NSAccessibilityUsageDescription':'读取当前软件中你主动选中的文字，显示不抢焦点的浮条；你点击应用后才替换选区。','NSServices':[{'NSMenuItem':{'default':'Snapper Assist · 整理选文'},'NSMessage':'optimizeSelection','NSPortName':'Snapper Assist','NSSendTypes':['NSStringPboardType','public.utf8-plain-text'],'NSRequiredContext':{'NSTextContext':'NSInputText'}}]}
+info={'CFBundleName':'Snapper Assist','CFBundleDisplayName':'Snapper Assist','CFBundleIdentifier':'local.snapper.assist','CFBundleExecutable':'SnapperAssist','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.10.0','CFBundleVersion':'14','CFBundleIconFile':'SnapperAssist.icns','LSMinimumSystemVersion':'26.0','LSUIElement':True,'NSHighResolutionCapable':True,'NSPrincipalClass':'NSApplication','NSAccessibilityUsageDescription':'读取当前软件中你主动选中的文字，显示不抢焦点的浮条；你点击应用后才替换选区。','NSServices':[{'NSMenuItem':{'default':'Snapper Assist · 整理选文'},'NSMessage':'optimizeSelection','NSPortName':'Snapper Assist','NSSendTypes':['NSStringPboardType','public.utf8-plain-text'],'NSRequiredContext':{'NSTextContext':'NSInputText'}}]}
 if args.preview_bundle:
     info.update(CFBundleIdentifier='local.snapper.assist.preview',CFBundleName='Snapper Assist Preview',CFBundleDisplayName='Snapper Assist Preview',NSServices=[])
 (target/'Contents/Info.plist').write_bytes(plistlib.dumps(info))

@@ -213,5 +213,8 @@ func runSelectionTests() {
     check(deniedGuide.steps.contains("隐私与安全性") && deniedGuide.steps.contains("不是设置侧边栏"), "permission guide distinguishes privacy controls from accessibility preferences")
     check(deniedGuide.recovery.contains("只移除") && deniedGuide.recovery.contains("重新检查"), "stale permission recovery stays scoped to this app")
     check(!grantedGuide.steps.contains("添加下面") && grantedGuide.steps.contains("只读"), "trusted guide moves to use and field compatibility")
+    check(SharedAI.validCode("sa1_" + String(repeating: "a", count: 64)) && !SharedAI.validCode("sk-private-provider-key"), "invite format cannot be mistaken for a model API key")
+    check(SharedAI.origin.scheme == "https" && SharedAI.origin.host == "snapper-assist-shared-ai.shian493719370.chatgpt.site", "shared client uses only the fixed HTTPS relay")
+    check(SharedAIError.service("billing_disabled").localizedDescription.contains("未开启"), "disabled billing is shown honestly without claiming AI completion")
     print("selection: \(count) regression checks passed")
 }

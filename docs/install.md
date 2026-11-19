@@ -8,7 +8,7 @@
 | System | macOS 26 or newer |
 | App permission | Accessibility for the installed copy |
 | Local draft | No model account or network request required |
-| AI | Compatible existing Codex CLI, saved file login and available account usage |
+| Shared AI | Private invitation; billing currently disabled |
 
 The ZIP is ad-hoc signed, not Developer-ID signed or notarized. Fresh-machine installation has not yet been verified. macOS may block the first launch. Record the exact message if blocked; do not disable system-wide security controls for this beta. [Apple's guidance](https://support.apple.com/102445).
 
@@ -30,19 +30,13 @@ Ad-hoc builds may need renewed approval after an update. Keeping the installatio
 
 ## AI mode
 
-This beta currently looks for the CLI at this fixed path:
+0.10 defaults to shared AI: friends do not need Codex, an API key, or the maintainer's login. Open **共享 AI 与邀请码…** from the permission guide or menu-bar S, paste a private invitation from the maintainer, and click **连接／保存选择**.
 
-```text
-/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex
-```
+**Real model billing is currently disabled at the maintainer's request.** A successful connection says the invitation is connected but billing is off, with zero allowances. This verifies access, not successful AI generation. Use **⋯ → 使用本地草稿** to test replacement and Undo without a model request.
 
-It uses your own saved `~/.codex/auth.json`, or the corresponding file under an inherited `CODEX_HOME`. The development machine tested CLI `0.166.0-alpha.6`; other versions, installation layouts and keychain-only credentials have not been validated. Having a different Codex installation is not enough to establish compatibility with this build. You can still test local drafts if this setup is unavailable.
+Invitations bind to one device, expire, and can be revoked. Once a budget is separately approved and the maintainer enables generation, only clicking AI refinement sends selected text and confirmed method preferences through the relay to TideVerse. The service normally selects methods and then refines in two model calls. Disabled shared mode does not silently fall back to another paid account.
 
-Use your own account. Do not copy someone else's `auth.json`, password or API key. An unavailable CLI/login leaves the local draft available; the helper does not configure a new API key or switch accounts.
-
-With a compatible setup, selecting text and clicking **AI 完善** starts generation using your account usage. It normally makes two model calls: select relevant Skills, then refine the original using the selected bodies. It does not use the local prefab draft as its editing basis. Bundled methods remain candidates alongside ordinary local Skills; at most four are used, and their scripts are never executed. Observe the spinner and elapsed seconds, then review the result. Selection alone never starts generation. A repeated, unchanged request in the same field can return the short-lived memory cache.
-
-If a Documents-folder or Full Disk Access prompt appears, cancel and report it. The selected-text workflow does not need that broader access.
+**本机 Codex · 保留原有接入** remains an explicitly selected alternative for existing compatible local setups. It uses the prior fixed CLI path and file-backed login; this is not required for shared mode. See [shared-service details](shared-ai.zh-CN.md) and [Privacy](../PRIVACY.md).
 
 ## Updates and removal
 

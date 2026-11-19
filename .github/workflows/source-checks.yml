@@ -14,3 +14,9 @@ jobs:
       - run: python3 scripts/test_preferences.py
       - run: python3 scripts/test_source_index.py
       - run: python3 scripts/test_package_methods.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test shared-ai/test/shared.test.mjs
+      - run: bash scripts/build.sh && node scripts/validate-artifact.mjs
+        working-directory: shared-ai

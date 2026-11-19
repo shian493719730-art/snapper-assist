@@ -141,7 +141,7 @@ final class SelectionSnapshot {
 }
 enum PanelMode { case hidden, toolbar, suggestion, applied, generating, replacing, methods, about }
 
-final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate {
+final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
     var status: NSStatusItem!
     var panel: QuietPanel!
     var stack: NSStackView!
@@ -155,6 +155,12 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
     var result = ""
     var paused = false
     var process: Process?
+    var sharedTask: Task<Void, Never>?
+    var sharedSettingsTask: Task<Void, Never>?
+    var sharedWindow: NSWindow?
+    var sharedCodeField: NSSecureTextField?
+    var sharedModeChoice: NSPopUpButton?
+    var sharedStatusLabel: NSTextField?
     var requestID = UUID()
     var undoRecord: (target: AXSelectionTarget, plan: EditPlan, strategy: String, originalSize: CGSize?)?
     var lastUndoDiagnostics: [String: Any] = [:]
@@ -219,7 +225,7 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         let permissionStatus = NSMenuItem(title: "", action: nil, keyEquivalent: "")
         permissionStatus.isEnabled = false; permissionMenuStatus = permissionStatus
         for (title, action) in [("检查当前选区", #selector(manualSelection)), ("暂停／恢复选文浮条", #selector(togglePause)),
-                                ("来源与方法", #selector(showMethods)), ("授权与设置…", #selector(showInfo)),
+                                ("共享 AI 与邀请码…", #selector(showSharedAISettings)), ("来源与方法", #selector(showMethods)), ("授权与设置…", #selector(showInfo)),
                                 ("辅助功能设置…", #selector(openAccessibility)), ("退出 Snapper Assist", #selector(quit))] {
             let item = NSMenuItem(title: title, action: action, keyEquivalent: ""); item.target = self; menu.addItem(item)
         }
@@ -464,7 +470,8 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         result = prepared.text; generated = nil; resultSource = "快速草稿 · " + (recipeCatalog?.recipe(for: s.text)?.title ?? "需求完善"); mode = .suggestion; showSuggestion()
     }
     func cancelRefinement() {
-        if process != nil { lastRefinementStatus = "cancelled"; health() }
+        if process != nil || sharedTask != nil { lastRefinementStatus = "cancelled"; health() }
+        sharedTask?.cancel(); sharedTask = nil
         requestID = UUID(); process?.terminate(); process = nil
         refinementProgress = nil; progressLabel = nil
         if let dir = activeDirectory { try? FileManager.default.removeItem(at: dir) }; activeDirectory = nil
@@ -513,7 +520,7 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
             let suggested = NSMenuItem(title: "跟随内置建议 · \(domain.suggested?.title ?? "默认")", action: #selector(chooseDomainMethod), keyEquivalent: "")
             suggested.target = self; suggested.representedObject = [domain.id, ""]
             suggested.state = state.selectedMethod(domain.id) == nil ? .on : .off
-            suggested.isEnabled = process == nil && mode != .applied && mode != .replacing
+            suggested.isEnabled = process == nil && sharedTask == nil && mode != .applied && mode != .replacing
             submenu.addItem(suggested); submenu.addItem(.separator())
             for method in domain.methods {
                 let choice = NSMenuItem(title: method.title, action: #selector(chooseDomainMethod), keyEquivalent: "")
@@ -660,7 +667,9 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         stack.addArrangedSubview(paths)
         stack.addArrangedSubview(label("设置没有跳转？" + AccessibilityHelp.manualPath, size: 10))
         let fallback = button("直接打开系统设置", #selector(openSystemSettings)); fallback.isEnabled = !previewMode
-        stack.addArrangedSubview(fallback)
+        let setup = NSStackView(); setup.spacing = 8; setup.addArrangedSubview(fallback)
+        let shared = button("共享 AI 与邀请码…", #selector(showSharedAISettings)); shared.isEnabled = !previewMode
+        setup.addArrangedSubview(shared); stack.addArrangedSubview(setup)
         stack.addArrangedSubview(label(previewMode ? "这是界面预览，不要为预览应用授权。" : permissionNotice ?? "开关亮起不等于当前应用已生效，以本页系统检测为准。", size: 10))
         position(NSEvent.mouseLocation); panel.orderFrontRegardless()
     }
@@ -699,7 +708,8 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         }
     }
     @objc func refineSelection() {
-        guard let s = snapshot, process == nil else { return }
+        guard let s = snapshot, process == nil, sharedTask == nil else { return }
+        if UserDefaults.standard.string(forKey: "ai-connection-mode") != "local" { refineSharedSelection(s); return }
         let prepared = preparePrompt(s.text, catalog: recipeCatalog)
         let skills = RefinementSkills.load()
         let cacheKey = suggestionCache.key(scope: "\(s.pid):\(s.element.map { CFHash($0) } ?? 0):" + RefinementSkills.fingerprint(skills), prepared: prepared)
@@ -759,7 +769,80 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
             try launch(nil); refinementCount += 1; lastRefinementStatus = "skill-routing"; health()
         } catch { failed("无法启动 AI 深化；检查现有 Codex 登录，本地草稿仍可使用。") }
     }
-    @objc func quit() { cancelRefinement(); if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }; NSApp.terminate(nil) }
+    @objc func showSharedAISettings() {
+        if let sharedWindow { sharedWindow.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return }
+        cancelRefinement(); mode = .about; panel.orderOut(nil)
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 430), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.title = "共享 AI 与邀请码"; window.isReleasedWhenClosed = false; window.delegate = self
+        let content = NSVisualEffectView(); content.material = .windowBackground; content.state = .active; window.contentView = content
+        let layout = NSStackView(); layout.orientation = .vertical; layout.alignment = .leading; layout.spacing = 14; layout.translatesAutoresizingMaskIntoConstraints = false
+        content.addSubview(layout)
+        NSLayoutConstraint.activate([layout.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 24), layout.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -24), layout.topAnchor.constraint(equalTo: content.topAnchor, constant: 22)])
+        layout.addArrangedSubview(label("连接你的共享 AI", size: 20, color: .labelColor, weight: .semibold))
+        layout.addArrangedSubview(label("朋友无需安装 Codex 或填写 API 密钥。输入维护者提供的邀请码；本机只保存这份邀请码。", size: 12))
+        let choice = NSPopUpButton(); choice.addItems(withTitles: ["共享 AI · 使用邀请码", "本机 Codex · 保留原有接入"])
+        choice.selectItem(at: UserDefaults.standard.string(forKey: "ai-connection-mode") == "local" ? 1 : 0); sharedModeChoice = choice; layout.addArrangedSubview(choice)
+        let field = NSSecureTextField(); field.placeholderString = "粘贴邀请码"; field.setAccessibilityLabel("邀请码"); field.translatesAutoresizingMaskIntoConstraints = false
+        field.widthAnchor.constraint(equalToConstant: 412).isActive = true; sharedCodeField = field; layout.addArrangedSubview(field)
+        let actions = NSStackView(); actions.spacing = 10
+        actions.addArrangedSubview(button("连接／保存选择", #selector(connectSharedAI), primary: true))
+        actions.addArrangedSubview(button("断开邀请码", #selector(disconnectSharedAI))); layout.addArrangedSubview(actions)
+        let state = label("共享服务的真实扣费当前关闭。连接与查看额度不发送模型请求；已有本地草稿不受影响。", size: 12)
+        state.preferredMaxLayoutWidth = 412; sharedStatusLabel = state; layout.addArrangedSubview(state)
+        layout.addArrangedSubview(label("服务：snapper-assist-shared-ai.shian493719370.chatgpt.site\n邀请码按设备绑定，可到期或被撤销。", size: 10))
+        sharedWindow = window; window.center(); window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
+        if let code = SharedAI.savedCode() {
+            sharedSettingsTask = Task { @MainActor [weak self] in
+                do { let info = try await SharedAI.status(code); self?.sharedStatusLabel?.stringValue = info.summary }
+                catch { self?.sharedStatusLabel?.stringValue = error.localizedDescription }
+            }
+        }
+    }
+    @objc func connectSharedAI() {
+        if sharedModeChoice?.indexOfSelectedItem == 1 {
+            UserDefaults.standard.set("local", forKey: "ai-connection-mode")
+            sharedStatusLabel?.stringValue = "已选择本机 Codex。沿用这台电脑已有的兼容登录；不会自动切换到共享扣费。"; return
+        }
+        let entered = sharedCodeField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let code = entered.isEmpty ? SharedAI.savedCode() ?? "" : entered
+        guard SharedAI.validCode(code) else { sharedStatusLabel?.stringValue = "请粘贴维护者提供的完整邀请码。"; return }
+        sharedSettingsTask?.cancel(); sharedStatusLabel?.stringValue = "正在连接邀请码，不发送模型请求…"
+        sharedSettingsTask = Task { @MainActor [weak self] in
+            do {
+                let info = try await SharedAI.activate(code)
+                UserDefaults.standard.set("shared", forKey: "ai-connection-mode")
+                self?.sharedCodeField?.stringValue = ""; self?.sharedStatusLabel?.stringValue = info.summary
+            } catch { self?.sharedStatusLabel?.stringValue = error.localizedDescription }
+        }
+    }
+    @objc func disconnectSharedAI() {
+        sharedSettingsTask?.cancel(); SharedAI.forgetCode(); sharedStatusLabel?.stringValue = "已移除本机邀请码，本地草稿可继续使用。"
+    }
+    func windowWillClose(_ notification: Notification) {
+        if notification.object as? NSWindow === sharedWindow { sharedSettingsTask?.cancel(); sharedWindow = nil; mode = .hidden }
+    }
+    func refineSharedSelection(_ s: SelectionSnapshot) {
+        guard let code = SharedAI.savedCode() else { showSharedAISettings(); return }
+        let id = UUID(); requestID = id
+        generated = nil; result = preparePrompt(s.text, catalog: recipeCatalog).text; resultSource = "本地备用草稿"; mode = .generating
+        refinementProgress = RefinementProgress(startedAt: Date()); selectedSkillSummary = "正在检查共享额度，尚未发送选文"; showSuggestion(note: selectedSkillSummary)
+        refinementCount += 1; lastRefinementStatus = "shared-status"; health()
+        sharedTask = Task { @MainActor [weak self] in
+            do {
+                let response = try await SharedAI.refine(s.text, code: code)
+                guard let self, !Task.isCancelled, self.requestID == id, self.snapshot?.key == s.key else { return }
+                self.sharedTask = nil; self.refinementProgress = nil; self.mode = .suggestion
+                self.generated = response.suggestion; self.result = response.suggestion.text; self.resultSource = "共享 AI · 按原文深化"
+                self.selectedSkillSummary = response.methods.map { $0.title + "：" + $0.reason }.joined(separator: "\n")
+                self.refinementSuccessCount += 1; self.lastRefinementStatus = "shared-completed"; self.health(); self.showSuggestion()
+            } catch {
+                guard let self, !Task.isCancelled, self.requestID == id else { return }
+                self.sharedTask = nil; self.refinementProgress = nil; self.mode = .suggestion
+                self.refinementFailureCount += 1; self.lastRefinementStatus = "shared-unavailable"; self.health(); self.showSuggestion(note: error.localizedDescription)
+            }
+        }
+    }
+    @objc func quit() { cancelRefinement(); sharedSettingsTask?.cancel(); if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }; NSApp.terminate(nil) }
 }
 
 @main struct SnapperEntry {

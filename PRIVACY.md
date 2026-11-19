@@ -4,7 +4,7 @@ Snapper Assist uses macOS Accessibility to observe the focused app's selected te
 
 Selection, undo text and the small response cache remain in app memory. Copy/compatibility-paste temporarily uses the system clipboard and restores it only while the app still owns that clipboard change; a newer user copy takes precedence.
 
-When the user clicks AI refinement, selected text, candidate Skill descriptions, confirmed method preferences and the selected editing instructions are passed to the existing Codex CLI. This uses the tester's own account and provider data policy. The helper does not promise cloud zero retention. Selection alone and local drafts do not issue a model request.
+In the explicitly selected local-Codex mode, when the user clicks AI refinement, selected text, candidate Skill descriptions, confirmed method preferences and the selected editing instructions are passed to the existing Codex CLI. This uses the tester's own account and provider data policy. The helper does not promise cloud zero retention. Selection alone and local drafts do not issue a model request.
 
 An AI invocation creates a private temporary profile and schema/result files, removed on normal completion or cancellation. The profile links the user's existing file-backed CLI login without copying its contents. Project documents, skill/plugin discovery and unrelated tools are disabled for this invocation. Missing credentials fail back to the local draft. A crash may leave temporary files until OS cleanup; the app does not claim every path is disk-free.
 
@@ -21,3 +21,11 @@ The release contains no developer credential, chat, private project, scheduled t
 ## Skill-aware refinement
 
 After a deliberate AI request, the app reads ordinary local Skill instruction files under `.codex/skills` and `.codex/skills/.system`, skipping symbolic links into other projects. Bundled public method cards remain available even when local Skills exist. The first model pass receives the original selection, candidate descriptions and confirmed domain method IDs. Only the selected instruction bodies (up to four) accompany the second pass. Skill scripts are not run and the selected task is not executed. The local prefab draft is no longer sent as the AI editing basis. These AI calls use the existing Codex login only after the user clicks; this update's automated checks did not send paid generation requests.
+
+## 0.10 shared AI
+
+Shared mode needs an invitation rather than a local Codex installation. The invitation stays in the Mac Keychain and an app-specific device ID stays in app preferences. An invitation is limited to one device and can expire or be revoked. The app checks status before sending selected text for refinement; when billing is disabled it does not send the selection to the generation endpoint and does not fall back to a different paid account.
+
+When generation is explicitly enabled, selected text and confirmed method preferences pass through the maintainer's relay to TideVerse. The relay uses its public method cards rather than reading the friend's local Skills. It stores hashed invitation tokens and a usage ledger with request hashes, timestamps and counters, not selections or suggestions. Provider keys are encrypted in the server database using a separate runtime secret; neither provider keys, owner credentials nor invitation codes are included in public packages. The maintainer can read aggregate usage for invitations and revoke access.
+
+This release's hosted billing gate is OFF and initial spending/request allowances are zero. Automated tests use mock generation; no paid model generation was sent by the agent. The provider's own retention policy still applies once generation is enabled. The existing local Codex path remains an explicitly selected alternative.

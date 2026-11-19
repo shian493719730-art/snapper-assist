@@ -120,3 +120,7 @@
 按 [测试清单](docs/testing.zh-CN.md) 记录实际结果，再提交 [问题反馈](https://github.com/shian493719730-art/snapper-assist/issues/new?template=bug_report.yml)。未测试的项请保留“未测试”，不要发密码、auth.json、API key 或私密聊天。
 
 源码构建与无模型检查见 [Contributing](CONTRIBUTING.md)。方法来源包括 Lauren Tan / pstack、Mollick、Osmani、Willison 等，[查看出处](docs/methods.md)。独立实现，采用 [MIT 许可](LICENSE)。
+
+## 0.10 共享 AI
+
+朋友输入邀请码连接，不用另装 Codex、配置 API 或拿到维护者密钥。服务端检查设备绑定、有效期、撤销、全局／个人额度、每日／总次数，并防止同一请求重复扣费。**按维护者本轮要求，真实模型扣费关闭，初始额度为零。** 本地草稿仍可使用；邀请码激活成功不等于收费生成已验收。[安装步骤与当前范围](docs/shared-ai.zh-CN.md)。

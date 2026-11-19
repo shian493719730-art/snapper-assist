@@ -23,7 +23,7 @@ You know what you want to do. You haven't worked out how to explain the goal, th
 
 **Snapper Assist puts request editing beside your selected text.** Select a rough idea, click **AI 完善**, and review a fuller request. Apply it in the original input when you're ready, or undo the change. Short notes can become concrete tasks; longer drafts can be reorganized around what matters.
 
-**Requirements:** Apple-silicon Mac, macOS 26+, and your own compatible Codex CLI/login for AI. This public beta is not notarized. Check the [setup requirements](docs/install.md) before installing. The current interface uses Chinese labels.
+**Requirements:** Apple-silicon Mac and macOS 26+. The 0.10 shared-AI candidate uses a private invitation without a local Codex installation; real model billing is currently disabled. Existing 0.9.1 public downloads still use local Codex. This public beta is not notarized. Check the [setup requirements](docs/install.md) before installing. The current interface uses Chinese labels.
 
 ## From “something like this” to a useful starting point
 
@@ -141,3 +141,7 @@ The maintainer's configured weekly workflow checks original practitioners, disco
 **For beta users:** the 0.9.1 download includes the current method snapshot and a native preference menu. The maintainer's weekly automation is not bundled or automatically installed on your Mac; future snapshots arrive through a new download or an optional local data update. No third-party Skill is automatically installed or executed, and model-quality gains still require actual comparison.
 
 The project is an independent implementation. [MIT license](LICENSE).
+
+## Shared AI in 0.10
+
+Friends connect with an invitation rather than installing Codex or configuring an API. Provider keys stay encrypted on the server, separate from the application and invitations. Device binding, expiry, revocation, global/personal budgets, daily/total request limits and idempotent request IDs are checked by the service. **Billing is currently OFF with zero initial allowances.** Local drafts still work; invitation activation is not a claim that paid generation has been tested. [Setup and current scope](docs/shared-ai.zh-CN.md).
