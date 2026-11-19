@@ -13,6 +13,7 @@ import Foundation
             let p = preparePrompt(text, catalog: catalog)
             return ["original":p.original, "recipe":p.recipeID, "text":p.text, "questions":p.questions,
                     "ai_payload_contains_prepared_draft":enhancementPrompt(p).contains("prepared_draft"),
+                    "ai_payload_contains_original":(try? JSONSerialization.jsonObject(with: Data(enhancementPrompt(p).components(separatedBy: "\n\n").last!.utf8)) as? [String: Any])?["selected_text"] as? String == p.original,
                     "problem_preferences":problemSolvingPreferences(p),
                     "method_ids":refinementMethods(p, bundle:methodKnowledge).map(\.id),
                     "revision":p.revision]

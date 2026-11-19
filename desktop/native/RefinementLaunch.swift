@@ -16,7 +16,7 @@ struct RefinementLaunch {
         "features.code_mode_host=false", "features.browser_use=false",
         "features.browser_use_external=false", "features.computer_use=false",
         "features.multi_agent=false", "features.view_image=false",
-        "web_search=\"disabled\"", "model_reasoning_effort=\"low\""
+        "web_search=\"disabled\"", "model_reasoning_effort=\"high\""
     ]
     static var configArguments: [String] { settings.flatMap { ["-c", $0] } }
     static func arguments(schema: URL, output: URL) -> [String] {

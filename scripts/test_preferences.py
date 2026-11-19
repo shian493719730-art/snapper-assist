@@ -169,7 +169,7 @@ class Preferences(unittest.TestCase):
                 c.write_text(json.dumps(catalog,ensure_ascii=False));q.write_text(json.dumps([original],ensure_ascii=False))
                 row=json.loads(subprocess.check_output([PROBE,str(c),str(q)],text=True))[0]
                 self.assertIn(original,row['text']);self.assertIn(phrase,row['text'])
-                self.assertTrue(row['ai_payload_contains_prepared_draft'])
+                self.assertFalse(row['ai_payload_contains_prepared_draft']);self.assertTrue(row['ai_payload_contains_original'])
 
     def test_disabling_recommendations_restores_original_recipe_families(self):
         self.state['recommendations_enabled']=True
@@ -198,7 +198,7 @@ class Preferences(unittest.TestCase):
         expected=['academic-dialogue','argument-review','argument-review','academic-dialogue','learning','coding','design','writing','writing','research','academic-dialogue']
         self.assertEqual([r['recipe'] for r in result],expected)
         for original,r in zip(cases,result):
-            self.assertIn(original,r['text']);self.assertTrue(r['ai_payload_contains_prepared_draft'])
+            self.assertIn(original,r['text']);self.assertFalse(r['ai_payload_contains_prepared_draft']);self.assertTrue(r['ai_payload_contains_original'])
         self.assertIn('每次只问一个',result[0]['text'])
         self.assertEqual(result[2]['questions'],[])
         self.assertIn('禁止提问',result[2]['text'])

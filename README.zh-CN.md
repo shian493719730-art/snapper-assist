@@ -1,3 +1,5 @@
+> 本机 0.9.1 已安装：授权引导增加实际状态检查；AI 从原文选择方法与 Skill，再作实质完善。新版内测包待发布，下面公共下载仍为 0.8。[状态与验证](docs/releases/v0.9.1-candidate.md)。
+
 <div align="center">
   <img src="assets/icon.svg" width="96" alt="Snapper Assist 图标">
   <h1>Snapper Assist</h1>

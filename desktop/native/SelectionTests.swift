@@ -144,6 +144,15 @@ func runSelectionTests() {
     let oversized = GeneratedSuggestion(text: "test", intent: "test", assumptions: [], questions: ["one", "two", "three"])
     check(GeneratedSuggestion.parse(try! JSONEncoder().encode(oversized)) == nil, "bounded clarification output")
     let cache = SuggestionCache(limit: 2, lifetime: 60)
+    let skillFixtures = [RefinementSkill(id: "design", title: "设计", description: "布局与反馈", body: "完整技能正文：分析动作与反馈"), RefinementSkill(id: "writing", title: "写作", description: "语气", body: "保留原声")]
+    let routeText = RefinementSkills.routePrompt(original: "点了没反应，不要改变头像", skills: skillFixtures)
+    check(routeText.contains("点了没反应，不要改变头像") && !routeText.contains("完整技能正文"), "routing gets original and metadata before full skill body")
+    let skillPlan = SkillPlan(intent: "改进反馈", selections: [SkillSelection(id: "design", reason: "需要动作反馈")])
+    let editing = RefinementSkills.editingPrompt(original: "点了没反应，不要改变头像", plan: skillPlan, skills: skillFixtures)
+    check(editing.contains("完整技能正文") && !editing.contains("保留原声") && !editing.contains("prepared_draft"), "editing actually reads selected full skill and no prefab draft")
+    let invented = "{\"intent\":\"x\",\"selections\":[{\"id\":\"missing\",\"reason\":\"x\"}]}".data(using: .utf8)!
+    check(SkillPlan.parse(invented, skills: skillFixtures) == nil, "invented skill rejected before editing pass")
+    check(RefinementSkills.fingerprint(skillFixtures) != RefinementSkills.fingerprint(Array(skillFixtures.prefix(1))), "skill library revision invalidates cached output")
     let key = cache.key(scope: "field-A", prepared: short)
     let date = Date(timeIntervalSince1970: 1000)
     cache.put(key, value: response, now: date)
@@ -198,5 +207,11 @@ func runSelectionTests() {
         _ = try RefinementLaunch.environment(directory: launchTest.appendingPathComponent("missing-request"), inherited: ["CODEX_HOME": launchTest.appendingPathComponent("missing-login").path])
         check(false, "missing login must fail closed")
     } catch { check(!fm.fileExists(atPath: launchTest.appendingPathComponent("missing-request").path), "missing login never falls back to user's project profile") }
+    let deniedGuide = AccessibilityHelp(trusted: false, appPath: "/Applications/Snapper Assist.app")
+    let grantedGuide = AccessibilityHelp(trusted: true, appPath: deniedGuide.appPath)
+    check(deniedGuide.status.contains("尚未生效") && grantedGuide.status.contains("已授权"), "permission copy follows actual trust rather than a visual system toggle")
+    check(deniedGuide.steps.contains("隐私与安全性") && deniedGuide.steps.contains("不是设置侧边栏"), "permission guide distinguishes privacy controls from accessibility preferences")
+    check(deniedGuide.recovery.contains("只移除") && deniedGuide.recovery.contains("重新检查"), "stale permission recovery stays scoped to this app")
+    check(!grantedGuide.steps.contains("添加下面") && grantedGuide.steps.contains("只读"), "trusted guide moves to use and field compatibility")
     print("selection: \(count) regression checks passed")
 }

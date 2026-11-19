@@ -16,6 +16,10 @@ func runBundledMethodTests() {
     defer { try? FileManager.default.removeItem(at: folder) }
     do {
         let empty = try DomainPreferenceState.load(from: profile)
+        let skills = RefinementSkills.load(home: folder)
+        check(skills.filter { $0.id.hasPrefix("method-card-") }.count == 17, "fresh install exposes all 17 public methods to semantic routing")
+        check(skills.contains { $0.id == "request-reasoning" }, "fallback stays available without local skills")
+        check(skills.first { $0.id == "method-card-socratic-dialogue" }?.body.contains("本次明确要求优先") == true, "semantic method body retains current-request override")
         check(choices.domains.count == 14 && base.recipes.count == 15, "fresh install includes 14 domains plus general")
         let plain = try empty.applying(to: base, choices: choices)
         check(!FileManager.default.fileExists(atPath: profile.path), "first load does not create a personal preference")

@@ -2,6 +2,8 @@
 
 Start with a reproducible [bug report](https://github.com/shian493719730-art/snapper-assist/issues/new?template=bug_report.yml) or a small pull request. Preserve source-app focus, selection, existing drafts and clipboard ownership. Keep paid model calls explicitly user-triggered. Do not add account data or private app content to examples or fixtures.
 
+For authorized software updates, follow the [release policy](docs/release-policy.md): synchronize the local installation and GitHub beta, preserve preferences/data and rollback, minimize signing/Accessibility churn, and leave paid requests to the user. Documentation-only changes do not trigger a new app build or installation.
+
 ## Build and verify
 
 Use macOS 26+ with a macOS 26 SDK and Swift:
@@ -19,7 +21,7 @@ The native checks include UTF16 selections, no-op AX writes, stale focus, guarde
 For actual native construction of domain-aware Chinese prompts, without launching app UI or a model:
 
 ```sh
-swiftc -O desktop/native/SelectionCore.swift desktop/native/PromptPreparation.swift desktop/native/DomainMethods.swift desktop/native/PreferenceProbe.swift -o /tmp/snapper-preference-probe
+swiftc -O desktop/native/SelectionCore.swift desktop/native/PromptPreparation.swift desktop/native/DomainMethods.swift desktop/native/SkillRouting.swift desktop/native/PreferenceProbe.swift -o /tmp/snapper-preference-probe
 python3 scripts/test_preferences.py --native-probe /tmp/snapper-preference-probe
 ```
 

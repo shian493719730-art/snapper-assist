@@ -1,3 +1,5 @@
+> Local 0.9.1: clearer, checked Accessibility guidance and Skill-aware refinement from the original text. The new beta asset is pending publication; public downloads below still target 0.8. [Status and verification](docs/releases/v0.9.1-candidate.md).
+
 <div align="center">
   <img src="assets/icon.svg" width="96" alt="Snapper Assist icon">
   <h1>Snapper Assist</h1>
@@ -100,7 +102,7 @@ Attribution does not imply endorsement by the cited practitioners. Model-quality
 - Selecting text alone does not send it to a model.
 - The selected text and relevant editing context are sent through your existing Codex account only when you click AI refinement. That uses your account's available usage.
 - The current input's full text is read locally to verify a targeted edit. Undo state and the response cache stay in memory.
-- Each AI call uses a temporary, isolated profile. It links your own saved CLI login without copying the credential contents, and disables project/skill/plugin discovery for this text-editing call.
+- The app explicitly selects relevant bundled/local Skill instructions after you click. Each CLI call uses a temporary profile linked to your own saved login; automatic project/skill/plugin discovery and unrelated tools stay disabled.
 - No developer account, chat history, personal project, research schedule or analytics service is bundled.
 
 See [Privacy](PRIVACY.md) for temporary files and data boundaries.

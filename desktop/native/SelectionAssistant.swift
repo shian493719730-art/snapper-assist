@@ -172,6 +172,7 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
     var recipeCatalog: RecipeCatalog? { recipeStore.value }
     var generated: GeneratedSuggestion?
     var resultSource = "预制草稿"
+    var selectedSkillSummary = "尚未分析本条请求"
     var activeDirectory: URL?
     var cacheHits = 0, refinementCount = 0
     var refinementSuccessCount = 0, refinementFailureCount = 0
@@ -179,6 +180,8 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
     var refinementProgress: RefinementProgress?
     var progressLabel: NSTextField?
     var surfaceKind = "not-shown"
+    var permissionMenuStatus: NSMenuItem?
+    var permissionNotice: String?
 
     func health() {
         let dir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex/agent-learning-loop", isDirectory: true)
@@ -213,8 +216,10 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         mark.lineWidth = 1.9; mark.lineCapStyle = .round; NSColor.labelColor.setStroke(); mark.stroke(); image.unlockFocus(); image.isTemplate = true
         status.button?.image = image; status.button?.toolTip = "Snapper Assist · 选文助手"
         let menu = NSMenu()
+        let permissionStatus = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+        permissionStatus.isEnabled = false; permissionMenuStatus = permissionStatus
         for (title, action) in [("检查当前选区", #selector(manualSelection)), ("暂停／恢复选文浮条", #selector(togglePause)),
-                                ("来源与方法", #selector(showMethods)), ("关于与权限", #selector(showInfo)),
+                                ("来源与方法", #selector(showMethods)), ("授权与设置…", #selector(showInfo)),
                                 ("辅助功能设置…", #selector(openAccessibility)), ("退出 Snapper Assist", #selector(quit))] {
             let item = NSMenuItem(title: title, action: action, keyEquivalent: ""); item.target = self; menu.addItem(item)
         }
@@ -223,7 +228,8 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         menu.insertItem(excluded, at: 2)
         domainMenu = NSMenu(title: "领域方法"); domainMenu.delegate = self
         let domains = NSMenuItem(title: "领域方法", action: nil, keyEquivalent: ""); domains.submenu = domainMenu
-        menu.insertItem(domains, at: 3); status.menu = menu
+        menu.insertItem(domains, at: 3); menu.insertItem(permissionStatus, at: 0); status.menu = menu
+        updatePermissionStatus()
         panel = QuietPanel(contentRect: NSRect(x: 0, y: 0, width: 350, height: 52), styleMask: [.nonactivatingPanel, .borderless], backing: .buffered, defer: false)
         panel.level = .floating; panel.isFloatingPanel = true; panel.hidesOnDeactivate = false; panel.becomesKeyOnlyIfNeeded = true
         panel.hasShadow = true; panel.isOpaque = false; panel.backgroundColor = .clear; panel.isReleasedWhenClosed = false
@@ -236,6 +242,7 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
             self.hide(suppress: false); self.lifecycle.newGesture()
         }
         lastTrust = AXIsProcessTrusted(); health()
+        if !previewMode && !lastTrust { showInfo() }
         if previewMode {
             snapshot = SelectionSnapshot(element: nil, pid: 0, text: "学术讨论：什么算作知识？保留我的观点，不要发送消息。", range: nil, anchor: NSEvent.mouseLocation)
             result = preparePrompt(snapshot!.text, catalog: recipeCatalog).text; showSuggestion()
@@ -245,6 +252,7 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
             }
             if CommandLine.arguments.contains("--preview-toolbar") { showBar() }
             if CommandLine.arguments.contains("--preview-methods") { showMethods() }
+            if CommandLine.arguments.contains("--preview-permissions") || Bundle.main.object(forInfoDictionaryKey: "SnapperPreviewPermissions") as? Bool == true { showInfo() }
             // Render only this app's synthetic fixture, never other windows.
             if Bundle.main.bundleIdentifier == "local.snapper.assist.preview",
                let index = CommandLine.arguments.firstIndex(of: "--render-ui"), index + 1 < CommandLine.arguments.count {
@@ -262,6 +270,10 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
                 }
             }
         }
+    }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showInfo()
+        return false
     }
     func button(_ title: String, _ action: Selector, symbol: String? = nil, primary: Bool = false) -> NSButton {
         let b: NSButton = primary ? AccentButton(title: title, target: self, action: action) : NSButton(title: title, target: self, action: action)
@@ -332,7 +344,10 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
     }
     func poll() {
         if mode == .generating { progressLabel?.stringValue = refinementProgress?.label() ?? "正在启动 AI…" }
-        if AXIsProcessTrusted() != lastTrust { lastTrust = AXIsProcessTrusted(); health() }
+        if AXIsProcessTrusted() != lastTrust {
+            lastTrust = AXIsProcessTrusted(); health(); updatePermissionStatus()
+            if mode == .about { showInfo() }
+        }
         if previewMode { return }
         guard !paused, mode != .replacing else { return }
         let selection = sourceSelection()
@@ -594,18 +609,65 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
         if let s = sourceSelection() { snapshot = s; showBar() } else { showInfo() }
     }
     @objc func togglePause() { paused.toggle(); UserDefaults.standard.set(paused, forKey: "snapper-selection-paused"); if paused { hide(suppress: false) }; lifecycle.clear(); health() }
-    @objc func openAccessibility() { NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!) }
+    func updatePermissionStatus() {
+        let trusted = AXIsProcessTrusted()
+        permissionMenuStatus?.title = trusted ? "辅助功能：已授权" : "辅助功能：未生效 · 查看授权与设置"
+        status.button?.toolTip = "Snapper Assist · " + (trusted ? "选文助手" : "尚未授权，打开菜单中的“授权与设置”")
+    }
+    @objc func openAccessibility() {
+        guard !previewMode else { return }
+        if NSWorkspace.shared.open(AccessibilityHelp.settingsURL) {
+            permissionNotice = "已发送设置打开请求；若没有跳到正确页面，请按下方路径手动进入。"
+            panel.orderOut(nil); mode = .hidden
+        } else { openSystemSettings() }
+    }
+    @objc func openSystemSettings() {
+        guard !previewMode else { return }
+        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.systempreferences"), NSWorkspace.shared.open(url) {
+            panel.orderOut(nil); mode = .hidden
+        } else {
+            permissionNotice = "未能打开系统设置。请从屏幕左上角 Apple 菜单进入。"; showInfo()
+        }
+    }
+    @objc func revealInstalledApp() {
+        guard !previewMode else { return }
+        NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+    }
+    @objc func copyInstalledAppPath() {
+        NSPasteboard.general.clearContents(); NSPasteboard.general.setString(Bundle.main.bundleURL.path, forType: .string)
+        permissionNotice = "已复制当前 App 路径，可在系统“＋”的选择窗口按 ⌘⇧G 粘贴定位。"; showInfo()
+    }
+    @objc func checkAccessibility() {
+        lastTrust = AXIsProcessTrusted(); health(); updatePermissionStatus()
+        permissionNotice = lastTrust ? "系统已确认当前这份 App 的辅助功能权限。" : "仍未被系统认可。请核对添加的是下面路径中的当前应用。"
+        showInfo()
+    }
     @objc func showInfo() {
-        mode = .about; base(width: 440, height: 313)
-        header("Snapper Assist", subtitle: "选文助手  ·  \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development")")
-        let trust = AXIsProcessTrusted() ? "辅助功能已启用。" : "请在系统辅助功能中启用当前这份 Snapper Assist。"
-        body("\(trust)\n\n选中文字后点击 AI 完善，直接使用整合方法生成建议，使用现有 Codex 用量。生成时显示等待时间；本地草稿可从更多菜单或生成中使用。\n\n可在更多菜单禁用当前应用，从菜单栏恢复。选文、撤回和缓存只留在内存；AI 临时配置与结果完成或取消后清理。兼容粘贴保留新的复制操作。", height: 203)
+        mode = .about
+        let guide = AccessibilityHelp(trusted: AXIsProcessTrusted(), appPath: Bundle.main.bundleURL.path)
+        base(width: 440, height: guide.trusted ? 440 : 600)
+        stack.spacing = 8
+        header("授权与设置", subtitle: guide.status)
+        body(guide.steps + (guide.trusted ? "" : "\n\n" + guide.recovery), height: guide.trusted ? 116 : 250)
+        stack.addArrangedSubview(label("当前应用：" + guide.appPath, size: 10))
+        let row = NSStackView(); row.spacing = 8
+        let open = button("打开辅助功能设置", #selector(openAccessibility), symbol: "gearshape", primary: true); open.isEnabled = !previewMode
+        row.addArrangedSubview(open); row.addArrangedSubview(button("重新检查", #selector(checkAccessibility)))
+        stack.addArrangedSubview(row)
+        let paths = NSStackView(); paths.spacing = 8
+        let reveal = button("在访达显示当前 App", #selector(revealInstalledApp)); reveal.isEnabled = !previewMode
+        paths.addArrangedSubview(reveal); paths.addArrangedSubview(button("复制应用路径", #selector(copyInstalledAppPath)))
+        stack.addArrangedSubview(paths)
+        stack.addArrangedSubview(label("设置没有跳转？" + AccessibilityHelp.manualPath, size: 10))
+        let fallback = button("直接打开系统设置", #selector(openSystemSettings)); fallback.isEnabled = !previewMode
+        stack.addArrangedSubview(fallback)
+        stack.addArrangedSubview(label(previewMode ? "这是界面预览，不要为预览应用授权。" : permissionNotice ?? "开关亮起不等于当前应用已生效，以本页系统检测为准。", size: 10))
         position(NSEvent.mouseLocation); panel.orderFrontRegardless()
     }
     @objc func showMethods() {
         if mode != .methods { previousMode = mode }; mode = .methods; base(width: 440, height: 450)
-        header("来源与方法", subtitle: "内置 14 类领域建议 · 17 种可选方法")
-        body("保留目标、事实与约束，只加入当前任务需要的方法。\n\n从菜单栏 S 或浮条 ⋯ 的“领域方法”选择个人偏好，也可恢复内置建议；不用脚本，不发送模型请求。\n\n每周研究由维护者进行，安装包携带方法快照。本地检查证明的是功能与约束保留，不代表模型输出更优。", height: 175)
+        header("本次 Skill 与方法", subtitle: "先理解原文 → 选择 Skill → 读取正文深化")
+        body(selectedSkillSummary + "\n\n只读取本机普通 Skill 指令文件；不运行脚本，不执行选文任务。方法供推敲原文，结果由你检查、替换或撤回。", height: 175)
         let rows = NSStackView(); rows.orientation = .vertical; rows.alignment = .leading; rows.spacing = 3
         for (title, url) in [("完整领域方法与出处", "https://github.com/shian493719730-art/snapper-assist/blob/main/docs/method-catalog.md"), ("Lauren Tan · pstack", "https://github.com/cursor/plugins/tree/main/pstack"), ("Mollick · 交互与约束", "https://www.oneusefulthing.org/p/a-guide-to-prompting-ai-for-what"), ("Osmani · 小步工作流", "https://addyosmani.com/blog/ai-coding-workflow/")] {
             let b = button(title + " ↗", #selector(openReference)); b.identifier = NSUserInterfaceItemIdentifier(url); b.isBordered = false; rows.addArrangedSubview(b)
@@ -639,46 +701,63 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate 
     @objc func refineSelection() {
         guard let s = snapshot, process == nil else { return }
         let prepared = preparePrompt(s.text, catalog: recipeCatalog)
-        let cacheKey = suggestionCache.key(scope: "\(s.pid):\(s.element.map { CFHash($0) } ?? 0)", prepared: prepared)
+        let skills = RefinementSkills.load()
+        let cacheKey = suggestionCache.key(scope: "\(s.pid):\(s.element.map { CFHash($0) } ?? 0):" + RefinementSkills.fingerprint(skills), prepared: prepared)
         if let cached = suggestionCache.get(cacheKey) {
             generated = cached; result = cached.text; resultSource = "本次会话缓存"; mode = .suggestion; cacheHits += 1; lastRefinementStatus = "cached"; health(); showSuggestion(); return
         }
         generated = nil; result = prepared.text; resultSource = "本地备用草稿"; mode = .generating
-        refinementProgress = RefinementProgress(startedAt: Date())
-        showSuggestion(note: "正在结合已整合的方法库完善上方选文。")
+        selectedSkillSummary = "正在理解原文，选择相关 Skill"
+        refinementProgress = RefinementProgress(startedAt: Date()); showSuggestion(note: selectedSkillSummary)
         let id = UUID(); requestID = id
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("snapper-" + UUID().uuidString, isDirectory: true)
-        do {
-            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-            activeDirectory = dir
-            let schema = dir.appendingPathComponent("schema.json"), output = dir.appendingPathComponent("result.json")
-            let fields: [String: Any] = ["text": ["type": "string", "minLength": 1, "maxLength": 20000], "intent": ["type": "string", "minLength": 1, "maxLength": 180], "assumptions": ["type": "array", "maxItems": 3, "items": ["type": "string", "maxLength": 300]], "questions": ["type": "array", "maxItems": 2, "items": ["type": "string", "maxLength": 300]]]
-            try JSONSerialization.data(withJSONObject: ["type": "object", "properties": fields, "required": ["text", "intent", "assumptions", "questions"], "additionalProperties": false]).write(to: schema)
-            let job = Process(); job.executableURL = RefinementLaunch.executable; job.currentDirectoryURL = dir
-            job.environment = try RefinementLaunch.environment(directory: dir)
-            job.arguments = RefinementLaunch.arguments(schema: schema, output: output)
-            let pipe = Pipe(); job.standardInput = pipe; job.standardOutput = FileHandle.nullDevice; job.standardError = FileHandle.nullDevice
-            job.terminationHandler = { [weak self] job in DispatchQueue.main.async {
-                defer { try? FileManager.default.removeItem(at: dir); if self?.activeDirectory == dir { self?.activeDirectory = nil } }
-                guard let self, self.process === job, self.requestID == id, self.snapshot?.key == s.key else { return }
-                self.process = nil; self.refinementProgress = nil; self.mode = .suggestion
-                if job.terminationStatus == 0, let data = try? Data(contentsOf: output), let value = GeneratedSuggestion.parse(data) {
-                    self.generated = value; self.result = value.text; self.resultSource = "AI 补全"; self.suggestionCache.put(cacheKey, value: value)
-                    self.refinementSuccessCount += 1; self.lastRefinementStatus = "completed"; self.health(); self.showSuggestion()
-                } else {
-                    self.refinementFailureCount += 1; self.lastRefinementStatus = job.terminationStatus == 0 ? "invalid-output" : "process-failed"; self.health()
-                    self.result = prepared.text; self.showSuggestion(note: "AI 补全未完成，预制草稿仍可使用。")
-                }
-            } }
-            process = job; try job.run(); refinementCount += 1; lastRefinementStatus = "running"; health()
-            pipe.fileHandleForWriting.write(enhancementPrompt(prepared).data(using: .utf8)!); try? pipe.fileHandleForWriting.close()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 120) { [weak self, weak job] in if let job, self?.process === job { job.terminate() } }
-        } catch {
-            process = nil; refinementProgress = nil; mode = .suggestion; result = prepared.text; activeDirectory = nil
-            refinementFailureCount += 1; lastRefinementStatus = "launch-failed"; health()
-            let note = error is RefinementLaunch.LaunchError ? "现有 Codex 登录文件不可用；请在 Codex 中确认登录。预制草稿仍可使用。" : "无法启动 AI 补全，预制草稿仍可使用。"
-            showSuggestion(note: note); try? FileManager.default.removeItem(at: dir)
+        func failed(_ note: String) {
+            guard self.requestID == id else { return }
+            self.process = nil; self.refinementProgress = nil; self.mode = .suggestion
+            self.refinementFailureCount += 1; self.lastRefinementStatus = "incomplete"; self.result = prepared.text
+            self.health(); self.showSuggestion(note: note); try? FileManager.default.removeItem(at: dir); self.activeDirectory = nil
         }
+        do {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700]); activeDirectory = dir
+            let environment = try RefinementLaunch.environment(directory: dir)
+            let fields: [String: Any] = ["text": ["type": "string", "minLength": 1, "maxLength": 20000], "intent": ["type": "string", "minLength": 1, "maxLength": 180], "assumptions": ["type": "array", "maxItems": 3, "items": ["type": "string", "maxLength": 300]], "questions": ["type": "array", "maxItems": 2, "items": ["type": "string", "maxLength": 300]]]
+            let resultSchema: [String: Any] = ["type": "object", "properties": fields, "required": ["text", "intent", "assumptions", "questions"], "additionalProperties": false]
+            func launch(_ plan: SkillPlan?) throws {
+                let route = plan == nil && !skills.isEmpty
+                let schema = dir.appendingPathComponent(route ? "route-schema.json" : "schema.json")
+                let output = dir.appendingPathComponent(route ? "route-result.json" : "result.json")
+                try JSONSerialization.data(withJSONObject: route ? RefinementSkills.planSchema : resultSchema).write(to: schema)
+                let job = Process(); job.executableURL = RefinementLaunch.executable; job.currentDirectoryURL = dir
+                job.environment = environment; job.arguments = RefinementLaunch.arguments(schema: schema, output: output)
+                let pipe = Pipe(); job.standardInput = pipe; job.standardOutput = FileHandle.nullDevice; job.standardError = FileHandle.nullDevice
+                job.terminationHandler = { [weak self] job in DispatchQueue.main.async {
+                    guard let self, self.process === job, self.requestID == id, self.snapshot?.key == s.key else { return }
+                    self.process = nil
+                    guard job.terminationStatus == 0, let data = try? Data(contentsOf: output) else { failed("AI 未完成，本地备用草稿仍可使用。"); return }
+                    if route {
+                        guard let next = SkillPlan.parse(data, skills: skills) else { failed("Skill 选择未完成，未套用默认模板。"); return }
+                        self.selectedSkillSummary = next.selections.map { item in
+                            (skills.first { $0.id == item.id }?.title ?? item.id) + "：" + item.reason
+                        }.joined(separator: "\n")
+                        if self.selectedSkillSummary.isEmpty { self.selectedSkillSummary = "本条请求无需额外 Skill，按原意推敲" }
+                        self.showSuggestion(note: "正在读取所选 Skill 并推敲原文")
+                        do { try launch(next) } catch { failed("无法启动 Skill 深化，本地草稿仍可使用。") }
+                        return
+                    }
+                    guard let value = GeneratedSuggestion.parse(data) else { failed("AI 结果未完整，未替换原文。"); return }
+                    self.refinementProgress = nil; self.mode = .suggestion; self.generated = value; self.result = value.text
+                    self.resultSource = "AI · 按原文与 Skill 深化"; self.suggestionCache.put(cacheKey, value: value)
+                    self.refinementSuccessCount += 1; self.lastRefinementStatus = "completed"; self.health(); self.showSuggestion()
+                    try? FileManager.default.removeItem(at: dir); self.activeDirectory = nil
+                } }
+                self.process = job; try job.run()
+                let prompt = route ? RefinementSkills.routePrompt(original: s.text, skills: skills) :
+                    plan.map { RefinementSkills.editingPrompt(original: s.text, plan: $0, skills: skills) } ?? enhancementPrompt(prepared)
+                pipe.fileHandleForWriting.write(prompt.data(using: .utf8)!); try? pipe.fileHandleForWriting.close()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 180) { [weak self, weak job] in if let job, self?.process === job { job.terminate() } }
+            }
+            try launch(nil); refinementCount += 1; lastRefinementStatus = "skill-routing"; health()
+        } catch { failed("无法启动 AI 深化；检查现有 Codex 登录，本地草稿仍可使用。") }
     }
     @objc func quit() { cancelRefinement(); if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }; NSApp.terminate(nil) }
 }
