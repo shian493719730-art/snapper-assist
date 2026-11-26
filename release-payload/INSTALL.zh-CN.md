@@ -4,7 +4,7 @@
 
 1. 从 [Release](https://github.com/shian493719730-art/snapper-assist/releases) 下载 ZIP 并解压，将 Snapper Assist.app 移到“应用程序”或自己的 Applications 文件夹。
 2. 打开应用，在“系统设置 → 隐私与安全性 → 辅助功能”中添加并开启这份应用，必要时退出后重新打开。菜单栏 S 提供暂停、恢复与退出。
-3. 先在文本编辑中使用 [测试文字](testing.zh-CN.md)，选中后从“⋯ → 使用本地草稿”开始，不会调用模型。
+3. 先在文本编辑中使用 [测试文字](https://github.com/shian493719730-art/snapper-assist/blob/v0.10.5-beta.1/docs/testing.zh-CN.md)，选中后从“⋯ → 使用本地草稿”开始，不会调用模型。
 4. 安装包已默认加载 14 类领域建议和 17 种可选方法，无需下载配方、安装 Python 或改配置。要选择个人习惯，打开“菜单栏 S → 领域方法”或“浮条 ⋯ → 领域方法”；如“学术讨论 → 苏格拉底式提问”。选“跟随内置建议”恢复默认，下次完善即生效。
 
 安装包为 ad-hoc 签名，尚未做 Developer ID 签名和 Apple 公证，新电脑首次安装未实测。macOS 可能阻止首次打开；请记录准确提示，不要为内测关闭全局安全保护。[Apple 官方说明](https://support.apple.com/zh-cn/102445)。
@@ -29,7 +29,7 @@
 
 在 **S → AI 连接… → Claude · Anthropic 官方 API** 可使用自己的 Anthropic 密钥。密钥仅保存在系统钥匙串中。点击 **Claude 完善** 后才发起请求，可能由 Anthropic 计费。
 
-0.10 默认使用共享 AI。**朋友无需安装 Codex、配置 API 或复制维护者密钥。** 打开 **AI 连接… → 共享 AI · 邀请码**，粘贴维护者单独提供的邀请码并保存。完整步骤见[共享 AI 说明](shared-ai.zh-CN.md)。
+0.10 默认使用共享 AI。**朋友无需安装 Codex、配置 API 或复制维护者密钥。** 打开 **AI 连接… → 共享 AI · 邀请码**，粘贴维护者单独提供的邀请码并保存。完整步骤见[共享 AI 说明](https://github.com/shian493719730-art/snapper-assist/blob/v0.10.5-beta.1/docs/shared-ai.zh-CN.md)。
 
 当前真实模型扣费按维护者要求关闭，成功连接会显示“邀请码已连接 · 真实模型扣费未开启”。邀请码能激活和查询状态，不表示 AI 生成已开放；先用“⋯ → 使用本地草稿”测试替换和撤回。
 
@@ -41,4 +41,4 @@
 
 ## 更新与移除
 
-尚未配置自动更新或开机启动。更新前先退出；不同 ad-hoc 构建可能要求重新确认辅助功能权限。移除时退出、删除 App 并移除辅助功能条目。可选本地状态位置见 [隐私说明](../PRIVACY.md)。
+尚未配置自动更新或开机启动。更新前先退出；不同 ad-hoc 构建可能要求重新确认辅助功能权限。移除时退出、删除 App 并移除辅助功能条目。可选本地状态位置见 [隐私说明](https://github.com/shian493719730-art/snapper-assist/blob/v0.10.5-beta.1/PRIVACY.md)。

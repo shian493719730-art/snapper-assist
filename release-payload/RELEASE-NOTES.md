@@ -9,7 +9,7 @@
 
 ## 下载与使用
 
-Apple 芯片 Mac，macOS 26+。安装包采用临时签名（ad-hoc），更新后自动选文可能需要为当前副本重新确认辅助功能权限。[中文安装说明](../install.zh-CN.md) · [English setup](../install.md)。
+Apple 芯片 Mac，macOS 26+。安装包采用临时签名（ad-hoc），更新后自动选文可能需要为当前副本重新确认辅助功能权限。[中文安装说明](https://github.com/shian493719730-art/snapper-assist/blob/v0.10.5-beta.1/docs/install.zh-CN.md) · [English setup](https://github.com/shian493719730-art/snapper-assist/blob/v0.10.5-beta.1/docs/install.md)。
 
 官方 Claude 请求由你点击发起，费用来自自己的 Anthropic 账户。共享 AI 邀请方式仍保留，默认托管生成扣费关闭。
 

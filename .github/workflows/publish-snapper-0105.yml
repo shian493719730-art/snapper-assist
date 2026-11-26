@@ -1,26 +1,26 @@
-name: Publish Snapper Assist 0.10.5 beta
+name: Update Snapper Assist 0.10.5 release documentation
 on:
   push:
     branches: [release-assets/snapper-assist-0.10.5-beta.1]
 permissions:
   contents: write
 jobs:
-  publish:
+  update-release-documentation:
     if: github.repository == 'shian493719730-art/snapper-assist'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Verify and publish the exact locally tested ZIP
+      - name: Keep the verified package and update only the published instructions
         working-directory: release-payload
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           sha256sum --check SHA256SUMS.txt
-          gh release create v0.10.5-beta.1 \
-            --target 810119326beb84c62f986c5e4a493a7c1b216012 \
-            --prerelease --title 'Snapper Assist 0.10.5 beta' \
-            --notes-file RELEASE-NOTES.md \
-            Snapper-Assist-0.10.5-macOS26-arm64-beta.zip SHA256SUMS.txt INSTALL.zh-CN.md
+          tag=v0.10.5-beta.1
+          target=$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq .object.sha)
+          test "$target" = 810119326beb84c62f986c5e4a493a7c1b216012
+          gh release edit "$tag" --notes-file RELEASE-NOTES.md
+          gh release upload "$tag" INSTALL.zh-CN.md --clobber
