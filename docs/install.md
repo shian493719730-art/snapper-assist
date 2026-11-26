@@ -28,15 +28,21 @@ If it still says **尚未生效**, use **在访达显示当前 App** to identify
 
 Ad-hoc builds may need renewed approval after an update. Keeping the installation path and Bundle ID stable reduces ambiguity but cannot guarantee continuity of macOS permission.
 
+## If an editor does not expose its selection
+
+Copy the highlighted text and click **menu-bar S → 处理已复制文字**. Review the loaded text before clicking **Claude 完善** or the current AI provider's refine button. Copy the result back to your editor. The copied-text entry works without Accessibility permission, and loading text itself does not send a model request. Automatic selection in the Codex composer remains unverified.
+
 ## AI mode
 
-0.10 defaults to shared AI: friends do not need Codex, an API key, or the maintainer's login. Open **共享 AI 与邀请码…** from the permission guide or menu-bar S, paste a private invitation from the maintainer, and click **连接／保存选择**.
+Choose **S → AI 连接… → Claude · Anthropic 官方 API** to save your own Anthropic key in macOS Keychain. Clicking **Claude 完善** sends the selected or explicitly loaded text to Anthropic, which may bill your API account.
+
+0.10 defaults to shared AI: friends do not need Codex, an API key, or the maintainer's login. Choose **AI 连接… → 共享 AI · 邀请码**, paste a private invitation from the maintainer, and click **保存连接**.
 
 **Real model billing is currently disabled at the maintainer's request.** A successful connection says the invitation is connected but billing is off, with zero allowances. This verifies access, not successful AI generation. Use **⋯ → 使用本地草稿** to test replacement and Undo without a model request.
 
 Invitations bind to one device, expire, and can be revoked. Once a budget is separately approved and the maintainer enables generation, only clicking AI refinement sends selected text and confirmed method preferences through the relay to TideVerse. The service normally selects methods and then refines in two model calls. Disabled shared mode does not silently fall back to another paid account.
 
-**本机 Codex · 保留原有接入** remains an explicitly selected alternative for existing compatible local setups. It uses the prior fixed CLI path and file-backed login; this is not required for shared mode. See [shared-service details](shared-ai.zh-CN.md) and [Privacy](../PRIVACY.md).
+**本机 Codex** remains an explicitly selected alternative for existing compatible local setups. It uses the prior fixed CLI path and file-backed login; this is not required for shared mode. See [shared-service details](shared-ai.zh-CN.md) and [Privacy](../PRIVACY.md).
 
 ## Updates and removal
 

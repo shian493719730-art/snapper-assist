@@ -1,4 +1,4 @@
-> **0.10 beta is available:** connect shared AI with a private invitation, without installing Codex or configuring an API. **Model billing is OFF.** [Download](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.10.0-beta.1) · [Invitation setup and limits](docs/shared-ai.zh-CN.md).
+> **0.10.5 beta is available.** Bring your own Claude API key, use copied text when an editor does not expose its selection, and review edits before applying. [Download](https://github.com/shian493719730-art/snapper-assist/releases/tag/v0.10.5-beta.1)
 
 <div align="center">
   <img src="assets/icon.svg" width="96" alt="Snapper Assist icon">
@@ -77,18 +77,18 @@ The helper edits the request you plan to send. It does not perform the selected 
 
 ## Get started
 
-1. [Download the Apple-silicon beta ZIP](https://github.com/shian493719730-art/snapper-assist/releases/download/v0.10.0-beta.1/Snapper-Assist-0.10.0-macOS26-arm64-beta.zip), unzip it, and move **Snapper Assist.app** into Applications.
+1. [Download the Apple-silicon beta ZIP](https://github.com/shian493719730-art/snapper-assist/releases/download/v0.10.5-beta.1/Snapper-Assist-0.10.5-macOS26-arm64-beta.zip), unzip it, and move **Snapper Assist.app** into Applications.
 2. Enable that copy in **System Settings → Privacy & Security → Accessibility**.
 3. Select a short, non-sensitive test request in TextEdit. Choose **⋯ → 使用本地草稿** to try a local draft without sending a model request.
 
-Open **共享 AI 与邀请码…** from the authorization guide or menu-bar S and connect a private invitation from the maintainer. **Shared billing is currently OFF**, so use local drafts for now; no Codex or API configuration is needed for shared mode. [Setup and current scope](docs/shared-ai.zh-CN.md). The interface currently uses Chinese labels.
+Open **S → AI 连接… → Claude · Anthropic 官方 API** to connect your own Anthropic key. The key stays in macOS Keychain. If an editor does not provide its selection, copy the text and use **S → 处理已复制文字**, then click **Claude 完善** to refine. Copy the result back to your editor. This copied-text path works without Accessibility permission. Shared AI is available by invitation and its hosted billing is currently off. The interface uses Chinese labels. [Setup](docs/install.md).
 
 ## Stay in control
 
 | Feature | What you control |
 | --- | --- |
 | Selection-side assistance | A compact panel beside your text; the source app keeps focus. |
-| One-click AI refinement | Your click checks access and allowance first. Available generation shows progress; disabled billing is reported explicitly. |
+| One-click AI refinement | Your click starts refinement using the selected connection. Claude shows two stages, choosing methods and editing. Shared AI checks the invitation and allowance first. |
 | Bundled methods and local fallback | Fourteen domain recommendations, seventeen selectable methods and a general fallback. No model request needed for a local draft or a preference change. |
 | Review before writing | Inspect or copy the result. Nothing is replaced until you click Replace. |
 | Guarded replace and undo | Validate the source, selection and actual resulting text. Verified pastes prefer the source app's native Undo. |
@@ -100,7 +100,7 @@ Attribution does not imply endorsement by the cited practitioners. Model-quality
 ## Privacy and account use
 
 - Selecting text alone does not send it to a model.
-- When shared generation is enabled, clicking AI refinement sends selected text and confirmed method preferences through the maintainer's relay to TideVerse. Current shared billing is OFF; selecting text alone never starts generation. Explicit local-Codex mode instead uses your own local login.
+- When shared generation is enabled, clicking AI refinement sends selected text and confirmed method preferences through the maintainer's relay to TideVerse. Current shared billing is OFF; selecting text alone never starts generation. The other selectable connections use your own Anthropic key or existing local Codex login.
 - The current input's full text is read locally to verify a targeted edit. Undo state and the response cache stay in memory.
 - Shared mode uses public server-side method cards and does not scan a friend's local Skill files. Explicit local-Codex mode retains selected local Skills and an isolated CLI profile. Provider keys and invitation codes are excluded from the public package.
 - No developer account, chat history, personal project, research schedule or analytics service is bundled.
@@ -109,7 +109,9 @@ See [Privacy](PRIVACY.md) for temporary files and data boundaries.
 
 ## Current validation and limits
 
-The 0.10 build passed **77 native regression checks, 52 bundled/fresh-profile method checks and 20 shared-service tests**. Shared-service tests use actual SQLite and mock generation. The native invitation window connected to the hosted service, Accessibility trust was restored, and personal data hashes and prior pause/exclusion settings were preserved.
+The 0.10.5 package passed **80 native regression checks and 52 bundled method checks**. A local simulated response exercised both Claude stages. Automatic selection in the Codex composer remains unverified. [0.10.5 release notes](docs/releases/v0.10.5-beta.1.md).
+
+The 0.10.0 build passed **77 native regression checks, 52 bundled/fresh-profile method checks and 20 shared-service tests**. Shared-service tests use actual SQLite and mock generation. The native invitation window connected to the hosted service, Accessibility trust was restored, and personal data hashes and prior pause/exclusion settings were preserved.
 
 The hosted service and local machine both read the real TideVerse model catalog successfully, with the configured model available. Invitations activate, report disabled billing, and the generation endpoint rejects requests while billing is off. No paid model generation was sent. Older replacement/Undo demonstrations remain earlier-version evidence. [Release verification](docs/releases/v0.10.0-beta.1.md).
 

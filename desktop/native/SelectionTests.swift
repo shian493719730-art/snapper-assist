@@ -144,6 +144,9 @@ func runSelectionTests() {
     let oversized = GeneratedSuggestion(text: "test", intent: "test", assumptions: [], questions: ["one", "two", "three"])
     check(GeneratedSuggestion.parse(try! JSONEncoder().encode(oversized)) == nil, "bounded clarification output")
     let cache = SuggestionCache(limit: 2, lifetime: 60)
+    check(textInSelectedRange("中👌文", range: NSRange(location: 1, length: 2)) == "👌", "recover selected text by UTF-16 range")
+    check(textInSelectedRange("中👌文", range: NSRange(location: 1, length: 1)) == nil, "reject partial Unicode characters in selection ranges")
+    check(textInSelectedRange("中文", range: NSRange(location: 8, length: 1)) == nil, "reject selection outside the field value")
     let skillFixtures = [RefinementSkill(id: "design", title: "设计", description: "布局与反馈", body: "完整技能正文：分析动作与反馈"), RefinementSkill(id: "writing", title: "写作", description: "语气", body: "保留原声")]
     let routeText = RefinementSkills.routePrompt(original: "点了没反应，不要改变头像", skills: skillFixtures)
     check(routeText.contains("点了没反应，不要改变头像") && !routeText.contains("完整技能正文"), "routing gets original and metadata before full skill body")

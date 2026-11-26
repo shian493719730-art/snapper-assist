@@ -14,6 +14,19 @@ func selectedRange(_ element: AXUIElement) -> NSRange? {
     guard AXValueGetValue(unsafeBitCast(value, to: AXValue.self), .cfRange, &range), range.location >= 0, range.length >= 0 else { return nil }
     return NSRange(location: range.location, length: range.length)
 }
+func selectedTextFromElement(_ element: AXUIElement, range: NSRange?) -> String? {
+    if let text = ax(element, kAXSelectedTextAttribute) as? String, !text.isEmpty { return text }
+    guard let range, range.length > 0, range.length <= 80_000 else { return nil }
+    if let parameter = rangeValue(range) {
+        var value: CFTypeRef?
+        if AXUIElementCopyParameterizedAttributeValue(element, kAXStringForRangeParameterizedAttribute as CFString, parameter, &value) == .success,
+           let text = value as? String { return text }
+    }
+    let role = ax(element, kAXRoleAttribute) as? String ?? ""
+    guard [kAXTextAreaRole, kAXTextFieldRole, kAXComboBoxRole].contains(role),
+          let value = ax(element, kAXValueAttribute) as? String, value.utf16.count <= 1_000_000 else { return nil }
+    return textInSelectedRange(value, range: range)
+}
 func rangeValue(_ range: NSRange) -> AXValue? {
     var value = CFRange(location: range.location, length: range.length)
     return AXValueCreate(.cfRange, &value)
@@ -62,7 +75,7 @@ final class AXSelectionTarget: SelectionEditTarget {
     }
     var value: String? { ax(element, kAXValueAttribute) as? String }
     var range: NSRange? { selectedRange(element) }
-    var selectedText: String? { ax(element, kAXSelectedTextAttribute) as? String }
+    var selectedText: String? { selectedTextFromElement(element, range: range) }
     var editorSize: CGSize? {
         guard let raw = ax(element, kAXSizeAttribute), CFGetTypeID(raw) == AXValueGetTypeID() else { return nil }
         var size = CGSize.zero
@@ -158,7 +171,11 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
     var sharedTask: Task<Void, Never>?
     var sharedSettingsTask: Task<Void, Never>?
     var sharedWindow: NSWindow?
+    var setupWindow: NSWindow?
     var sharedCodeField: NSSecureTextField?
+    var claudeKeyField: NSSecureTextField?
+    var forgetClaudeButton: NSButton?
+    var forgetInviteButton: NSButton?
     var sharedModeChoice: NSPopUpButton?
     var sharedStatusLabel: NSTextField?
     var requestID = UUID()
@@ -224,8 +241,9 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         let menu = NSMenu()
         let permissionStatus = NSMenuItem(title: "", action: nil, keyEquivalent: "")
         permissionStatus.isEnabled = false; permissionMenuStatus = permissionStatus
-        for (title, action) in [("检查当前选区", #selector(manualSelection)), ("暂停／恢复选文浮条", #selector(togglePause)),
-                                ("共享 AI 与邀请码…", #selector(showSharedAISettings)), ("来源与方法", #selector(showMethods)), ("授权与设置…", #selector(showInfo)),
+        for (title, action) in [("检查当前选区", #selector(manualSelection)), ("处理已复制文字", #selector(showCopiedText)),
+                                ("暂停／恢复选文浮条", #selector(togglePause)),
+                                ("AI 连接…", #selector(showSharedAISettings)), ("来源与方法", #selector(showMethods)), ("授权与设置…", #selector(showInfo)),
                                 ("辅助功能设置…", #selector(openAccessibility)), ("退出 Snapper Assist", #selector(quit))] {
             let item = NSMenuItem(title: title, action: action, keyEquivalent: ""); item.target = self; menu.addItem(item)
         }
@@ -244,7 +262,8 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         // Mouse-up re-arms a freshly selected identical range even when a short
         // deselection happened between timer samples. No keyboard monitoring.
         mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseUp) { [weak self] _ in
-            guard let self, !previewMode, self.mode != .replacing, !self.panel.frame.contains(NSEvent.mouseLocation) else { return }
+            guard let self, !previewMode, self.mode != .replacing, self.mode != .about,
+                  !self.panel.frame.contains(NSEvent.mouseLocation) else { return }
             self.hide(suppress: false); self.lifecycle.newGesture()
         }
         lastTrust = AXIsProcessTrusted(); health()
@@ -293,13 +312,14 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         let field = NSTextField(wrappingLabelWithString: text); field.font = .systemFont(ofSize: size, weight: weight); field.textColor = color
         return field
     }
-    func base(width: CGFloat, height: CGFloat) {
+    func base(width: CGFloat, height: CGFloat, in window: NSWindow? = nil) {
+        let surfaceWindow = window ?? panel!
         // Remove the previous layout before resizing. Otherwise AppKit can keep
         // the preview's minimum size when returning to the small action bar.
-        panel.contentView = nil
-        panel.contentMinSize = NSSize(width: 1, height: 1)
-        panel.minSize = NSSize(width: 1, height: 1)
-        panel.setContentSize(NSSize(width: width, height: height))
+        surfaceWindow.contentView = nil
+        surfaceWindow.contentMinSize = NSSize(width: 1, height: 1)
+        surfaceWindow.minSize = NSSize(width: 1, height: 1)
+        surfaceWindow.setContentSize(NSSize(width: width, height: height))
         let frame = NSRect(x: 0, y: 0, width: width, height: height)
         let view = NSView(frame: frame); view.autoresizingMask = [.width, .height]
         if #available(macOS 26.0, *), !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency {
@@ -307,12 +327,12 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
             glass.style = .regular; glass.cornerRadius = height <= 60 ? 25 : 20
             // Put all controls in contentView: arbitrary glass subviews have no
             // guaranteed compositing order in AppKit.
-            glass.contentView = view; panel.contentView = glass; surfaceKind = "native-liquid-glass"
+            glass.contentView = view; surfaceWindow.contentView = glass; surfaceKind = "native-liquid-glass"
         } else {
             let fallback = NSVisualEffectView(frame: frame); fallback.material = .popover
             fallback.blendingMode = .behindWindow; fallback.state = .active; fallback.wantsLayer = true
             fallback.layer?.cornerRadius = 16; fallback.layer?.masksToBounds = true
-            fallback.addSubview(view); panel.contentView = fallback; surfaceKind = "reduced-transparency-fallback"
+            fallback.addSubview(view); surfaceWindow.contentView = fallback; surfaceKind = "reduced-transparency-fallback"
         }
         stack = NSStackView(); stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(stack)
@@ -332,10 +352,11 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
               app.processIdentifier != ProcessInfo.processInfo.processIdentifier, !app.isTerminated,
               !exclusions.contains(app.bundleIdentifier), let element = focusedElement(app.processIdentifier) else { return nil }
         let role = ax(element, kAXRoleAttribute) as? String ?? "", subrole = ax(element, kAXSubroleAttribute) as? String ?? ""
-        guard !role.contains("Secure"), !subrole.contains("Secure"),
-              let text = ax(element, kAXSelectedTextAttribute) as? String,
-              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, text.count <= 20000 else { return nil }
-        let range = selectedRange(element); var anchor = NSEvent.mouseLocation
+        guard !role.contains("Secure"), !subrole.contains("Secure") else { return nil }
+        let range = selectedRange(element)
+        guard let text = selectedTextFromElement(element, range: range),
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, text.count <= 20_000 else { return nil }
+        var anchor = NSEvent.mouseLocation
         if let range, let value = rangeValue(range) {
             var bounds: CFTypeRef?
             if AXUIElementCopyParameterizedAttributeValue(element, kAXBoundsForRangeParameterizedAttribute as CFString, value, &bounds) == .success,
@@ -352,14 +373,14 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         if mode == .generating { progressLabel?.stringValue = refinementProgress?.label() ?? "正在启动 AI…" }
         if AXIsProcessTrusted() != lastTrust {
             lastTrust = AXIsProcessTrusted(); health(); updatePermissionStatus()
-            if mode == .about { showInfo() }
+            if setupWindow?.isVisible == true { displayInfo(activate: false) }
         }
         if previewMode { return }
         guard !paused, mode != .replacing else { return }
         let selection = sourceSelection()
         if mode == .methods || mode == .about { return }
         if mode != .hidden && mode != .toolbar {
-            if snapshot?.element == nil && selection == nil { return }
+            if snapshot?.element == nil && (selection == nil || snapshot?.pid == NSWorkspace.shared.frontmostApplication?.processIdentifier) { return }
             if selection?.key == snapshot?.key { return }
             hide(suppress: false)
         }
@@ -375,12 +396,13 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
     }
     func showBar() {
         guard let snapshot else { return }; mode = .toolbar; statusLabel = nil
+        selectedSkillSummary = "尚未分析本条请求"
         base(width: 356, height: 54); stack.orientation = .horizontal; stack.alignment = .centerY; stack.spacing = 9
         let recipe = recipeCatalog?.recipe(for: snapshot.text)
         stack.addArrangedSubview(label("\(recipe?.title ?? "选文") · \(snapshot.text.count) 字", size: 11, weight: .medium))
         let spacer = NSView(); spacer.setContentHuggingPriority(.defaultLow, for: .horizontal); stack.addArrangedSubview(spacer)
-        let ai = button("AI 完善", #selector(refineSelection), symbol: "sparkles", primary: true)
-        ai.toolTip = "点击后使用现有 Codex 用量生成建议；只在你点击替换后写入。"
+        let ai = button(refinementButtonTitle, #selector(refineSelection), symbol: "sparkles", primary: true)
+        ai.toolTip = refinementButtonHelp
         stack.addArrangedSubview(ai)
         let more = button("", #selector(showSelectionMenu), symbol: "ellipsis"); more.imagePosition = .imageOnly
         more.isBordered = false; more.setAccessibilityLabel("更多选文选项"); stack.addArrangedSubview(more)
@@ -444,9 +466,13 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
             }
             controls.addArrangedSubview(button("复制", #selector(copyResult)))
             if mode == .suggestion {
-                let ai = button("AI 完善", #selector(refineSelection), symbol: "sparkles"); ai.toolTip = "你点击后才发送选文，使用现有 Codex 用量"; controls.addArrangedSubview(ai)
+                let ai = button(refinementButtonTitle, #selector(refineSelection), symbol: "sparkles"); ai.toolTip = refinementButtonHelp; controls.addArrangedSubview(ai)
             }
-            controls.addArrangedSubview(button("方法", #selector(showMethods), symbol: "info.circle"))
+            if mode == .suggestion && resultSource == "原文" && generated == nil {
+                controls.addArrangedSubview(button("本地草稿", #selector(usePreparedDraft)))
+            } else {
+                controls.addArrangedSubview(button("方法", #selector(showMethods), symbol: "info.circle"))
+            }
         }
         stack.addArrangedSubview(controls)
         let detail: String
@@ -463,7 +489,10 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         if suppress { lifecycle.dismiss(snapshot?.key) }
         panel.orderOut(nil); mode = .hidden
     }
-    @objc func dismiss() { hide(suppress: true) }
+    @objc func dismiss() {
+        if mode == .about, let setupWindow, setupWindow.isVisible { setupWindow.close(); return }
+        hide(suppress: true)
+    }
     @objc func localPreview() {
         guard let s = snapshot else { return }
         let prepared = preparePrompt(s.text, catalog: recipeCatalog)
@@ -476,7 +505,14 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         refinementProgress = nil; progressLabel = nil
         if let dir = activeDirectory { try? FileManager.default.removeItem(at: dir) }; activeDirectory = nil
     }
-    @objc func usePreparedDraft() { cancelRefinement(); mode = .suggestion; showSuggestion(note: "预制草稿 · AI 已取消，检查后替换。") }
+    @objc func usePreparedDraft() {
+        cancelRefinement()
+        guard let snapshot else { return }
+        result = preparePrompt(snapshot.text, catalog: recipeCatalog).text
+        selectedSkillSummary = "本地草稿使用离线编辑规则。"
+        generated = nil; resultSource = "本地草稿"; mode = .suggestion
+        showSuggestion(note: "已改用本地草稿，检查后再替换。")
+    }
     @objc func showSelectionMenu(_ sender: NSButton) {
         let menu = NSMenu()
         let local = NSMenuItem(title: "使用本地草稿", action: #selector(localPreview), keyEquivalent: ""); local.target = self; menu.addItem(local)
@@ -612,8 +648,38 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         lastUndoDiagnostics = observation
     }
     @objc func manualSelection() {
-        lifecycle.clear()
-        if let s = sourceSelection() { snapshot = s; showBar() } else { showInfo() }
+        cancelRefinement(); lifecycle.clear()
+        if let selection = sourceSelection() {
+            setupWindow?.close(); snapshot = selection; showBar()
+        } else if AXIsProcessTrusted() {
+            showSelectionNotice("没有读到选中文字", detail: "辅助功能已授权。请先复制你选中的文字，然后在菜单栏 S 里点「处理已复制文字」。")
+        } else {
+            showInfo()
+        }
+    }
+    @objc func showCopiedText() {
+        guard let text = NSPasteboard.general.string(forType: .string),
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            showSelectionNotice("没有可用的已复制文字", detail: "先复制想完善的文字，然后再打开这个入口。")
+            return
+        }
+        guard text.count <= 20_000 else {
+            showSelectionNotice("已复制的文字太长", detail: "请复制不超过 20,000 字的文字。")
+            return
+        }
+        cancelRefinement(); setupWindow?.close()
+        let source = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
+        snapshot = SelectionSnapshot(element: nil, pid: source, text: text, range: nil, anchor: NSEvent.mouseLocation)
+        result = text; generated = nil; resultSource = "已复制的文字"; mode = .suggestion
+        selectedSkillSummary = "尚未分析本条请求"
+        showSuggestion(note: "已载入你复制的文字。确认后点击「\(refinementButtonTitle)」，完成后可复制结果。")
+    }
+    func showSelectionNotice(_ title: String, detail: String) {
+        let alert = NSAlert()
+        alert.messageText = title; alert.informativeText = detail
+        alert.addButton(withTitle: "好")
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
     }
     @objc func togglePause() { paused.toggle(); UserDefaults.standard.set(paused, forKey: "snapper-selection-paused"); if paused { hide(suppress: false) }; lifecycle.clear(); health() }
     func updatePermissionStatus() {
@@ -625,13 +691,12 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         guard !previewMode else { return }
         if NSWorkspace.shared.open(AccessibilityHelp.settingsURL) {
             permissionNotice = "已发送设置打开请求；若没有跳到正确页面，请按下方路径手动进入。"
-            panel.orderOut(nil); mode = .hidden
         } else { openSystemSettings() }
     }
     @objc func openSystemSettings() {
         guard !previewMode else { return }
         if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.systempreferences"), NSWorkspace.shared.open(url) {
-            panel.orderOut(nil); mode = .hidden
+            return
         } else {
             permissionNotice = "未能打开系统设置。请从屏幕左上角 Apple 菜单进入。"; showInfo()
         }
@@ -644,15 +709,28 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         NSPasteboard.general.clearContents(); NSPasteboard.general.setString(Bundle.main.bundleURL.path, forType: .string)
         permissionNotice = "已复制当前 App 路径，可在系统“＋”的选择窗口按 ⌘⇧G 粘贴定位。"; showInfo()
     }
+    @objc func requestAccessibility() {
+        guard !previewMode else { return }
+        let prompt = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        if AXIsProcessTrustedWithOptions(prompt) { checkAccessibility() }
+    }
     @objc func checkAccessibility() {
         lastTrust = AXIsProcessTrusted(); health(); updatePermissionStatus()
         permissionNotice = lastTrust ? "系统已确认当前这份 App 的辅助功能权限。" : "仍未被系统认可。请核对添加的是下面路径中的当前应用。"
         showInfo()
     }
-    @objc func showInfo() {
+    @objc func showInfo() { displayInfo(activate: true) }
+    func displayInfo(activate: Bool) {
         mode = .about
         let guide = AccessibilityHelp(trusted: AXIsProcessTrusted(), appPath: Bundle.main.bundleURL.path)
-        base(width: 440, height: guide.trusted ? 440 : 600)
+        if !previewMode && setupWindow == nil {
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 440, height: 600),
+                styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            window.title = "Snapper Assist · 授权与设置"
+            window.isReleasedWhenClosed = false; window.delegate = self
+            window.collectionBehavior = [.moveToActiveSpace]; setupWindow = window
+        }
+        base(width: 440, height: guide.trusted ? 440 : 600, in: setupWindow)
         stack.spacing = 8
         header("授权与设置", subtitle: guide.status)
         body(guide.steps + (guide.trusted ? "" : "\n\n" + guide.recovery), height: guide.trusted ? 116 : 250)
@@ -668,10 +746,26 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         stack.addArrangedSubview(label("设置没有跳转？" + AccessibilityHelp.manualPath, size: 10))
         let fallback = button("直接打开系统设置", #selector(openSystemSettings)); fallback.isEnabled = !previewMode
         let setup = NSStackView(); setup.spacing = 8; setup.addArrangedSubview(fallback)
-        let shared = button("共享 AI 与邀请码…", #selector(showSharedAISettings)); shared.isEnabled = !previewMode
-        setup.addArrangedSubview(shared); stack.addArrangedSubview(setup)
+        let shared = button("AI 连接…", #selector(showSharedAISettings)); shared.isEnabled = !previewMode
+        setup.addArrangedSubview(shared)
+        if !guide.trusted {
+            let request = button("请求系统授权", #selector(requestAccessibility)); request.isEnabled = !previewMode
+            setup.addArrangedSubview(request)
+        }
+        stack.addArrangedSubview(setup)
         stack.addArrangedSubview(label(previewMode ? "这是界面预览，不要为预览应用授权。" : permissionNotice ?? "开关亮起不等于当前应用已生效，以本页系统检测为准。", size: 10))
-        position(NSEvent.mouseLocation); panel.orderFrontRegardless()
+        if let setupWindow {
+            if activate {
+                cancelRefinement(); panel.orderOut(nil)
+                if !setupWindow.isVisible { setupWindow.center() }
+                NSApp.activate(ignoringOtherApps: true)
+                setupWindow.makeKeyAndOrderFront(nil)
+                setupWindow.orderFrontRegardless()
+            }
+            health()
+        } else {
+            position(NSEvent.mouseLocation); panel.orderFrontRegardless()
+        }
     }
     @objc func showMethods() {
         if mode != .methods { previousMode = mode }; mode = .methods; base(width: 440, height: 450)
@@ -689,6 +783,7 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
     @objc func backToSuggestion() { mode = previousMode == .applied ? .applied : .suggestion; showSuggestion() }
     @objc func optimizeSelection(_ pasteboard: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
         guard let text = pasteboard.string(forType: .string), !text.isEmpty else { return }
+        cancelRefinement()
         let selected = sourceSelection()
         snapshot = selected?.text == text ? selected : SelectionSnapshot(element: nil, pid: NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0, text: text, range: nil, anchor: NSEvent.mouseLocation)
         result = preparePrompt(text, catalog: recipeCatalog).text; generated = nil; resultSource = "预制草稿"; mode = .suggestion
@@ -709,7 +804,11 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
     }
     @objc func refineSelection() {
         guard let s = snapshot, process == nil, sharedTask == nil else { return }
-        if UserDefaults.standard.string(forKey: "ai-connection-mode") != "local" { refineSharedSelection(s); return }
+        switch aiConnectionMode {
+        case "claude": refineClaudeSelection(s); return
+        case "local": break
+        default: refineSharedSelection(s); return
+        }
         let prepared = preparePrompt(s.text, catalog: recipeCatalog)
         let skills = RefinementSkills.load()
         let cacheKey = suggestionCache.key(scope: "\(s.pid):\(s.element.map { CFHash($0) } ?? 0):" + RefinementSkills.fingerprint(skills), prepared: prepared)
@@ -769,36 +868,130 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
             try launch(nil); refinementCount += 1; lastRefinementStatus = "skill-routing"; health()
         } catch { failed("无法启动 AI 深化；检查现有 Codex 登录，本地草稿仍可使用。") }
     }
+    var aiConnectionMode: String { UserDefaults.standard.string(forKey: "ai-connection-mode") ?? "shared" }
+    var refinementButtonTitle: String { aiConnectionMode == "claude" ? "Claude 完善" : "AI 完善" }
+    var refinementButtonHelp: String {
+        if aiConnectionMode == "claude" { return "点击后把选文交给 Anthropic 官方 Claude，可能产生 API 费用。检查后再替换。" }
+        if aiConnectionMode == "local" { return "点击后使用本机 Codex 生成建议。检查后再替换。" }
+        return "点击后检查共享 AI 额度，确认可用后才会发送选文。"
+    }
+
+    func refineClaudeSelection(_ selection: SelectionSnapshot) {
+        guard let key = ClaudeCredential.savedKey() else { showSharedAISettings(); return }
+        guard selection.text.count <= 20_000 else {
+            result = selection.text; generated = nil; resultSource = "原文"; mode = .suggestion
+            showSuggestion(note: ClaudeRefinementError.invalidInput.errorDescription); return
+        }
+        let id = UUID(); requestID = id
+        generated = nil; result = selection.text; resultSource = "原文"
+        mode = .generating
+        selectedSkillSummary = "第 1 步 · Claude 正在理解选文、判断需要哪些方法"
+        refinementProgress = RefinementProgress(startedAt: Date()); showSuggestion(note: selectedSkillSummary)
+        refinementCount += 1; lastRefinementStatus = "claude-routing"; health()
+        sharedTask = Task { @MainActor [weak self] in
+            do {
+                let suggestion = try await ClaudeRefinement.refine(selection.text, skills: RefinementSkills.load(),
+                    preferences: RefinementSkills.explicitPreferences(), routed: { methods in
+                        guard let self, self.requestID == id, self.snapshot?.key == selection.key else { return }
+                        self.selectedSkillSummary = methods.isEmpty ? "本条请求可直接改写，无需额外 Skill。" : methods.joined(separator: "\n")
+                        self.lastRefinementStatus = "claude-editing"; self.health()
+                        self.showSuggestion(note: methods.isEmpty ? "第 2 步 · Claude 按原文改写" : "第 2 步 · Claude 根据 \(methods.count) 项方法的正文改写")
+                    }, generate: { system, data, schema, editing in
+                        try await ClaudeRefinement.send(key: key, system: system, data: data, schema: schema, editing: editing)
+                    })
+                guard let self, !Task.isCancelled, self.requestID == id, self.snapshot?.key == selection.key else { return }
+                self.sharedTask = nil; self.refinementProgress = nil; self.mode = .suggestion
+                self.generated = suggestion; self.result = suggestion.text; self.resultSource = ClaudeRefinement.name
+                self.refinementSuccessCount += 1; self.lastRefinementStatus = "claude-completed"
+                self.health(); self.showSuggestion()
+            } catch {
+                guard let self, !Task.isCancelled, self.requestID == id, self.snapshot?.key == selection.key else { return }
+                self.sharedTask = nil; self.refinementProgress = nil; self.mode = .suggestion
+                self.selectedSkillSummary = "建议未完成。"
+                self.refinementFailureCount += 1; self.lastRefinementStatus = "claude-unavailable"; self.health()
+                let note = (error as? ClaudeRefinementError)?.errorDescription ?? "Claude 连接未完成。请检查网络或重试。"
+                self.showSuggestion(note: note)
+            }
+        }
+    }
+
     @objc func showSharedAISettings() {
         if let sharedWindow { sharedWindow.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return }
         cancelRefinement(); mode = .about; panel.orderOut(nil)
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 430), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.title = "共享 AI 与邀请码"; window.isReleasedWhenClosed = false; window.delegate = self
+        window.title = "AI 连接"; window.isReleasedWhenClosed = false; window.delegate = self
         let content = NSVisualEffectView(); content.material = .windowBackground; content.state = .active; window.contentView = content
         let layout = NSStackView(); layout.orientation = .vertical; layout.alignment = .leading; layout.spacing = 14; layout.translatesAutoresizingMaskIntoConstraints = false
         content.addSubview(layout)
         NSLayoutConstraint.activate([layout.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 24), layout.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -24), layout.topAnchor.constraint(equalTo: content.topAnchor, constant: 22)])
-        layout.addArrangedSubview(label("连接你的共享 AI", size: 20, color: .labelColor, weight: .semibold))
-        layout.addArrangedSubview(label("朋友无需安装 Codex 或填写 API 密钥。输入维护者提供的邀请码；本机只保存这份邀请码。", size: 12))
-        let choice = NSPopUpButton(); choice.addItems(withTitles: ["共享 AI · 使用邀请码", "本机 Codex · 保留原有接入"])
-        choice.selectItem(at: UserDefaults.standard.string(forKey: "ai-connection-mode") == "local" ? 1 : 0); sharedModeChoice = choice; layout.addArrangedSubview(choice)
-        let field = NSSecureTextField(); field.placeholderString = "粘贴邀请码"; field.setAccessibilityLabel("邀请码"); field.translatesAutoresizingMaskIntoConstraints = false
-        field.widthAnchor.constraint(equalToConstant: 412).isActive = true; sharedCodeField = field; layout.addArrangedSubview(field)
+        layout.addArrangedSubview(label("选择 AI 连接", size: 20, color: .labelColor, weight: .semibold))
+        let choice = NSPopUpButton()
+        choice.addItems(withTitles: ["共享 AI · 邀请码", "本机 Codex", "Claude · Anthropic 官方 API"])
+        choice.selectItem(at: aiConnectionMode == "claude" ? 2 : aiConnectionMode == "local" ? 1 : 0)
+        choice.target = self; choice.action = #selector(updateAIConnectionFields)
+        sharedModeChoice = choice; layout.addArrangedSubview(choice)
+        let invite = NSSecureTextField(); invite.placeholderString = "粘贴邀请码"; invite.setAccessibilityLabel("邀请码")
+        let key = NSSecureTextField(); key.placeholderString = "粘贴 Anthropic API 密钥"; key.setAccessibilityLabel("Claude API 密钥")
+        for field in [invite, key] {
+            field.translatesAutoresizingMaskIntoConstraints = false
+            field.widthAnchor.constraint(equalToConstant: 412).isActive = true
+            layout.addArrangedSubview(field)
+        }
+        sharedCodeField = invite; claudeKeyField = key
         let actions = NSStackView(); actions.spacing = 10
-        actions.addArrangedSubview(button("连接／保存选择", #selector(connectSharedAI), primary: true))
-        actions.addArrangedSubview(button("断开邀请码", #selector(disconnectSharedAI))); layout.addArrangedSubview(actions)
-        let state = label("共享服务的真实扣费当前关闭。连接与查看额度不发送模型请求；已有本地草稿不受影响。", size: 12)
+        actions.addArrangedSubview(button("保存连接", #selector(connectSharedAI), primary: true))
+        let forgetInvite = button("移除邀请码", #selector(disconnectSharedAI)); forgetInviteButton = forgetInvite
+        let forgetClaude = button("移除 Claude 密钥", #selector(disconnectClaude)); forgetClaudeButton = forgetClaude
+        actions.addArrangedSubview(forgetInvite); actions.addArrangedSubview(forgetClaude); layout.addArrangedSubview(actions)
+        let state = label("", size: 12)
         state.preferredMaxLayoutWidth = 412; sharedStatusLabel = state; layout.addArrangedSubview(state)
-        layout.addArrangedSubview(label("服务：snapper-assist-shared-ai.shian493719370.chatgpt.site\n邀请码按设备绑定，可到期或被撤销。", size: 10))
-        sharedWindow = window; window.center(); window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
-        if let code = SharedAI.savedCode() {
-            sharedSettingsTask = Task { @MainActor [weak self] in
-                do { let info = try await SharedAI.status(code); self?.sharedStatusLabel?.stringValue = info.summary }
-                catch { self?.sharedStatusLabel?.stringValue = error.localizedDescription }
+        sharedWindow = window; updateAIConnectionFields()
+        window.center(); window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
+    }
+    @objc func updateAIConnectionFields() {
+        sharedSettingsTask?.cancel()
+        let choice = sharedModeChoice?.indexOfSelectedItem
+        sharedCodeField?.isHidden = choice != 0; forgetInviteButton?.isHidden = choice != 0
+        claudeKeyField?.isHidden = choice != 2; forgetClaudeButton?.isHidden = choice != 2
+        if choice == 2 {
+            let configured = ClaudeCredential.savedKey() != nil
+            claudeKeyField?.placeholderString = configured ? "已保存密钥；留空继续使用" : "粘贴 Anthropic API 密钥"
+            sharedStatusLabel?.stringValue = "使用 \(ClaudeRefinement.name)。密钥存入系统钥匙串。\n只有你点击「Claude 完善」才会发送选文并可能产生费用。"
+        } else if choice == 1 {
+            sharedStatusLabel?.stringValue = "使用本机已有的兼容 Codex 登录。"
+        } else {
+            sharedStatusLabel?.stringValue = "使用维护者提供的邀请码。若共享模型不可用，仍可使用本地草稿。"
+            if let code = SharedAI.savedCode() {
+                sharedSettingsTask = Task { @MainActor [weak self] in
+                    do {
+                        let info = try await SharedAI.status(code)
+                        if !Task.isCancelled { self?.sharedStatusLabel?.stringValue = info.summary }
+                    } catch { if !Task.isCancelled { self?.sharedStatusLabel?.stringValue = error.localizedDescription } }
+                }
             }
         }
     }
+    @objc func disconnectClaude() {
+        do {
+            try ClaudeCredential.forget()
+            claudeKeyField?.stringValue = ""
+            updateAIConnectionFields()
+            sharedStatusLabel?.stringValue = "已移除本机保存的 Claude 密钥。"
+        } catch { sharedStatusLabel?.stringValue = error.localizedDescription }
+    }
     @objc func connectSharedAI() {
+        if sharedModeChoice?.indexOfSelectedItem == 2 {
+            let entered = claudeKeyField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            do {
+                if !entered.isEmpty { try ClaudeCredential.save(entered) }
+                guard ClaudeCredential.savedKey() != nil else { throw ClaudeRefinementError.invalidKey }
+                UserDefaults.standard.set("claude", forKey: "ai-connection-mode")
+                claudeKeyField?.stringValue = ""
+                updateAIConnectionFields()
+                sharedStatusLabel?.stringValue = "已选择 \(ClaudeRefinement.name)。返回原应用，选中文字后点击「Claude 完善」。"
+            } catch { sharedStatusLabel?.stringValue = error.localizedDescription }
+            return
+        }
         if sharedModeChoice?.indexOfSelectedItem == 1 {
             UserDefaults.standard.set("local", forKey: "ai-connection-mode")
             sharedStatusLabel?.stringValue = "已选择本机 Codex。沿用这台电脑已有的兼容登录；不会自动切换到共享扣费。"; return
@@ -810,16 +1003,24 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
         sharedSettingsTask = Task { @MainActor [weak self] in
             do {
                 let info = try await SharedAI.activate(code)
+                guard !Task.isCancelled else { return }
                 UserDefaults.standard.set("shared", forKey: "ai-connection-mode")
                 self?.sharedCodeField?.stringValue = ""; self?.sharedStatusLabel?.stringValue = info.summary
-            } catch { self?.sharedStatusLabel?.stringValue = error.localizedDescription }
+            } catch { if !Task.isCancelled { self?.sharedStatusLabel?.stringValue = error.localizedDescription } }
         }
     }
     @objc func disconnectSharedAI() {
         sharedSettingsTask?.cancel(); SharedAI.forgetCode(); sharedStatusLabel?.stringValue = "已移除本机邀请码，本地草稿可继续使用。"
     }
     func windowWillClose(_ notification: Notification) {
-        if notification.object as? NSWindow === sharedWindow { sharedSettingsTask?.cancel(); sharedWindow = nil; mode = .hidden }
+        let window = notification.object as? NSWindow
+        if window === sharedWindow {
+            sharedSettingsTask?.cancel(); sharedWindow = nil
+            mode = setupWindow?.isVisible == true ? .about : .hidden
+        } else if window === setupWindow {
+            setupWindow = nil
+            if sharedWindow == nil { mode = .hidden; lifecycle.clear() }
+        }
     }
     func refineSharedSelection(_ s: SelectionSnapshot) {
         guard let code = SharedAI.savedCode() else { showSharedAISettings(); return }
@@ -847,6 +1048,16 @@ final class SelectionAssistant: NSObject, NSApplicationDelegate, NSMenuDelegate,
 
 @main struct SnapperEntry {
     static func main() {
+        if CommandLine.arguments == [CommandLine.arguments[0], "--configure-claude-from-stdin"] {
+            let key = String(decoding: FileHandle.standardInput.readData(ofLength: 512), as: UTF8.self)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            do {
+                try ClaudeCredential.save(key)
+                guard ClaudeCredential.savedKey() == key else { throw ClaudeRefinementError.keychain }
+                UserDefaults.standard.set("claude", forKey: "ai-connection-mode")
+                print("Claude 已配置在本机钥匙串"); return
+            } catch { fputs("无法配置本机 Claude。\n", stderr); exit(1) }
+        }
         if CommandLine.arguments.contains("--self-test") {
             runSelectionTests(); if MethodChoiceCatalog.bundled != nil { runBundledMethodTests() }; return
         }

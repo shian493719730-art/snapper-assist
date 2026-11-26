@@ -6,7 +6,7 @@ Selection, undo text and the small response cache remain in app memory. Copy/com
 
 In the explicitly selected local-Codex mode, when the user clicks AI refinement, selected text, candidate Skill descriptions, confirmed method preferences and the selected editing instructions are passed to the existing Codex CLI. This uses the tester's own account and provider data policy. The helper does not promise cloud zero retention. Selection alone and local drafts do not issue a model request.
 
-An AI invocation creates a private temporary profile and schema/result files, removed on normal completion or cancellation. The profile links the user's existing file-backed CLI login without copying its contents. Project documents, skill/plugin discovery and unrelated tools are disabled for this invocation. Missing credentials fail back to the local draft. A crash may leave temporary files until OS cleanup; the app does not claim every path is disk-free.
+A local Codex invocation creates a private temporary profile and schema/result files, removed on normal completion or cancellation. The profile links the user's existing file-backed CLI login without copying its contents. Project documents, skill/plugin discovery and unrelated tools are disabled for this invocation. Missing credentials fail back to the local draft. A crash may leave temporary files until OS cleanup; the app does not claim every path is disk-free.
 
 Optional local state:
 
@@ -20,7 +20,13 @@ The release contains no developer credential, chat, private project, scheduled t
 
 ## Skill-aware refinement
 
-After a deliberate AI request, the app reads ordinary local Skill instruction files under `.codex/skills` and `.codex/skills/.system`, skipping symbolic links into other projects. Bundled public method cards remain available even when local Skills exist. The first model pass receives the original selection, candidate descriptions and confirmed domain method IDs. Only the selected instruction bodies (up to four) accompany the second pass. Skill scripts are not run and the selected task is not executed. The local prefab draft is no longer sent as the AI editing basis. These AI calls use the existing Codex login only after the user clicks; this update's automated checks did not send paid generation requests.
+After a deliberate AI request, the app reads ordinary local Skill instruction files under `.codex/skills` and `.codex/skills/.system`, skipping symbolic links into other projects. Bundled public method cards remain available even when local Skills exist. The first model pass receives the original selection and candidate descriptions. Confirmed domain method preferences are supplied where applicable. Only the selected instruction bodies (up to four) accompany the second pass. Skill scripts are not run and the selected task is not executed. The local prefab draft is no longer sent as the AI editing basis. Requests start only after the user clicks; the chosen connection determines which provider receives them.
+
+## Copied text and direct Claude connections
+
+The **处理已复制文字** menu action reads the current plain-text clipboard only when you choose it. It opens a locally held preview, and the result can be copied for manual pasting. No current editor field is attached to that preview.
+
+Direct Claude mode stores your Anthropic API key in macOS Keychain. When you click **Claude 完善**, the original selected or explicitly loaded text and the candidate method names and descriptions are sent to Anthropic. The editing stage receives the original text, relevant confirmed method preferences and the selected instructions. Snapper Assist sends no tools or execution permission in these requests. Anthropic applies its own billing and data policy. Keys are excluded from the app bundle and the release assets.
 
 ## 0.10 shared AI
 

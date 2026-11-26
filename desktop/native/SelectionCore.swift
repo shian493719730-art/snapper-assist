@@ -1,5 +1,18 @@
 import Foundation
 
+func textInSelectedRange(_ text: String, range: NSRange) -> String? {
+    let units = text.utf16
+    guard range.location >= 0, range.length > 0,
+          let start = units.index(units.startIndex, offsetBy: range.location, limitedBy: units.endIndex),
+          let end = units.index(start, offsetBy: range.length, limitedBy: units.endIndex) else { return nil }
+    // An accessibility range is expressed in UTF-16 code units. Never expand a
+    // malformed range to the adjacent half of an emoji or another scalar.
+    let trailSurrogate: ClosedRange<UInt16> = 0xDC00...0xDFFF
+    guard !trailSurrogate.contains(units[start]),
+          end == units.endIndex || !trailSurrogate.contains(units[end]) else { return nil }
+    return String(decoding: units[start..<end], as: UTF16.self)
+}
+
 /// Suppression belongs to one continuous selection, never to the text forever.
 struct SelectionLifecycle {
     private(set) var candidate: String?
